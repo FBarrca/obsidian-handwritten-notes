@@ -1,11 +1,11 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
+	"id": "obsidian-handwritten-notes",
+	"name": "Hand Written Notes",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "This is a sample plugin for Obsidian. This plugin demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "This plugin allows you to write notes by hand using a stylus and annotate PDFs inside your vault.",
+	"author": "FBarrca",
+	"authorUrl": "https://github.com/FBarrca",
+	"fundingUrl": "https://www.buymeacoffee.com/FBarrCa",
 	"isDesktopOnly": false
 }
