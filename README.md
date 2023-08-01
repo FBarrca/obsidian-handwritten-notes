@@ -1,8 +1,8 @@
 # Obsidian Handwritten notes
 
 The Handwritten notes plugin integrates stylus notes into Obsidian. You can store and edit handwrtten notes files in your vault, you can embed drawings into your documents, and you can link to documents and other drawings to/and from the notes(WIP). For a showcase of  features watch the videos below.
-![Handwritten notes plugin showcase](https://youtu.be/dkdKeCJzVQA)
 
+<a href="https://youtu.be/dkdKeCJzVQA" target="_blank"><img src="https://i9.ytimg.com/vi_webp/dkdKeCJzVQA/mq1.webp?sqp=CPzQpKYG-oaymwEmCMACELQB8quKqQMa8AEB-AH-CIAC0AWKAgwIABABGGUgZShlMA8=&rs=AOn4CLBmuiNNMf997ooDUOjFdt_gQRmFxA" width="100" style="vertical-align: middle;"/>&nbsp;&nbsp;Quick look</a><br>
 The plugin is based around **PDFs** as a annotation platform that is open and can be used on any device (works on Desktop and Mobile and outside Obsidian)
 
 ## Features
