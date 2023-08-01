@@ -81,7 +81,7 @@ export default class NotePDF extends Plugin {
 			console.log();
 			result = await this.app.vault.adapter.readBinary(
 				this.app.vault.configDir +
-					"/plugins/obsidian-sample-plugin/" +
+					"/plugins/obsidian-handwritten-notes/" +
 					template
 			);
 		} else {
@@ -91,7 +91,7 @@ export default class NotePDF extends Plugin {
 			result = await this.app.vault.adapter.readBinary(
 				normalizePath(
 					this.app.vault.configDir +
-						"/plugins/obsidian-sample-plugin/" +
+						"/plugins/obsidian-handwritten-notes/" +
 						template
 				)
 			);
@@ -103,7 +103,7 @@ export default class NotePDF extends Plugin {
 	async createPDF() {
 		await new PDFCreatorModal(this.app, async (result) => {
 			const pathToPlugin = normalizePath(
-				this.app.vault.configDir + "/plugins/obsidian-sample-plugin/"
+				this.app.vault.configDir + "/plugins/obsidian-handwritten-notes/"
 			);
 			const pathToPdf = normalizePath(
 				pathToPlugin + "/" + result.template
@@ -126,7 +126,7 @@ export default class NotePDF extends Plugin {
 
 	async onload() {
 		const ribbonIconEl = this.addRibbonIcon(
-			"dice",
+			"pencil",
 			"Create empty PDF note",
 			(evt: MouseEvent) => {
 				this.createPDF();
@@ -140,29 +140,7 @@ export default class NotePDF extends Plugin {
 				this.createPDF();
 			},
 		});
-		const ribbonIconEl2 = this.addRibbonIcon(
-			"pencil",
-			"Create empty PDF note",
-			(evt: MouseEvent) => {
-				this.app.commands.executeCommandById(
-					"open-with-default-app:open"
-				);
-				// console.log( this.app.commands.app.commands.commands);
-				// Write in a new markdown file
-				// this.app.vault.create("New note.md", this.app.commands.app.commands.commands);
-				// write the json as a string to a file
-				const commands = this.app.commands.app.commands.commands;
-				// make it so we can map over it
 
-				console.log(
-					JSON.stringify(this.app.commands.app.commands.commands)
-				);
-				this.app.vault.create(
-					"New note.md",
-					JSON.stringify(this.app.commands.app.commands.commands)
-				);
-			}
-		);
 		this.app.workspace.on("active-leaf-change", () => {
 			console.log("Active leaf changed!");
 			// get current leaf
@@ -215,19 +193,9 @@ export default class NotePDF extends Plugin {
 			// 			document.getElementById("annotate"+i)
 			// 		)) continue;
 
-		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					console.log('Secret: ' + value);
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
-	}
-	onLayoutReady() {}
+		});
 
-	onunload() {}
-}
+	}
+
+	}
+
