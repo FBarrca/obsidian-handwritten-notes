@@ -10,8 +10,8 @@ import {
 	FileSystemAdapter,
 	DataAdapter,
 	Platform,
+	View,
 } from "obsidian";
-
 
 export class PDFCreatorModal extends Modal {
 	result: { name: string; template: string } = {
@@ -80,12 +80,11 @@ export default class NotePDF extends Plugin {
 
 	async createPDF() {
 		await new PDFCreatorModal(this.app, async (result) => {
-
 			const useRoot = false;
 			const destFolder = useRoot
 				? this.app.vault.getRoot()
 				: this.app.workspace.getActiveFile()?.parent;
-			
+
 			if (destFolder) {
 				const template = await this.loadPdfTemplate(result.template);
 				console.log("Template: " + template);
@@ -115,45 +114,39 @@ export default class NotePDF extends Plugin {
 
 		this.app.workspace.on("active-leaf-change", () => {
 			console.log("Active leaf changed!");
-			// get current leaf
-			const leaf = this.app.workspace.activeLeaf;
-			// get current view
-			const view = leaf.view;
-			// console.log(view);
-			const activeFile = this.app.workspace.getActiveFile();
-			if (activeFile?.extension === "pdf") {
-				console.log("PDF file opened!");
-				//  find HTML element with class 'markdown-preview-sizer'
-				// get Document
-				const doc = view.containerEl.ownerDocument;
-				console.log(doc);
-				const toolbars =
-					document.getElementsByClassName("pdf-toolbar");
-				//  Loop through all the elements with class 'markdown-preview-sizer'
-				for (let i = 0; i < toolbars.length; i++) {
-					//  check if it has a child with id 'annotate'
-					if (
-						!toolbars[i].contains(
-							document.getElementById("annotate"+i)
-						)
-					) {
-						// add a child inside markdownPreviewSizer
-						const button = doc.createElement("button");
-						// give it an id of 'annotate' + i
-						button.id = "annotate"+i;
-						button.innerHTML = "Annotate";
-						button.onclick = () => {
-							this.app.commands.executeCommandById(
-								"open-with-default-app:open"
-							);
-						};
-						toolbars[i].appendChild(button);
-					}
-				};
+
+			const active_view = app.workspace.getActiveViewOfType(View);
+			if (!active_view) return;
+			let view_type = active_view.getViewType();
+			if (view_type !== "pdf") return;
+
+			console.log("PDF file opened!");
+			//  find HTML element with class 'markdown-preview-sizer'
+			// get Document
+			const doc = active_view.containerEl.ownerDocument;
+			console.log(doc);
+			const toolbars = document.getElementsByClassName("pdf-toolbar");
+			//  Loop through all the elements with class 'markdown-preview-sizer'
+			for (let i = 0; i < toolbars.length; i++) {
+				//  check if it has a child with id 'annotate'
+				if (
+					!toolbars[i].contains(
+						document.getElementById("annotate" + i)
+					)
+				) {
+					// add a child inside markdownPreviewSizer
+					const button = doc.createElement("button");
+					// give it an id of 'annotate' + i
+					button.id = "annotate" + i;
+					button.innerHTML = "Annotate";
+					button.onclick = () => {
+						this.app.commands.executeCommandById(
+							"open-with-default-app:open"
+						);
+					};
+					toolbars[i].appendChild(button);
+				}
 			}
 		});
-
 	}
-
-	}
-
+}
