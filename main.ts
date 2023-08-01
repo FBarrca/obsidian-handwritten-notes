@@ -12,15 +12,6 @@ import {
 	Platform,
 } from "obsidian";
 
-export function buildPluginStaticResourceSrc(plug: NotePDF, assetPath: string) {
-	return plug.app.vault.adapter.getResourcePath(
-		plug.app.vault.configDir +
-			"/plugins/" +
-			plug.manifest.id +
-			"/" +
-			assetPath
-	);
-}
 
 export class PDFCreatorModal extends Modal {
 	result: { name: string; template: string } = {
@@ -76,45 +67,25 @@ export default class NotePDF extends Plugin {
 	async loadPdfTemplate(template: string) {
 		// check if it is a mobile adapter
 		let result = null;
-		console.log("Adapter: breaks here");
-		if (this.app.adapter instanceof FileSystemAdapter) {
-			console.log("Desktop");
-			console.log();
-			result = await this.app.vault.adapter.readBinary(
-				this.app.vault.configDir +
-					"/plugins/obsidian-handwritten-notes/" +
-					template
-			);
-		} else {
-			console.log("Mobile");
-			// its a DataAdapter
-			console.log("Name: " + template);
-			result = await this.app.vault.adapter.readBinary(
-				normalizePath(
-					this.app.vault.configDir +
-						"/plugins/obsidian-handwritten-notes/" +
-						template
-				)
-			);
-		}
 
+		result = await this.app.vault.adapter.readBinary(
+			normalizePath(
+				this.app.vault.configDir +
+					"/plugins/obsidian-handwritten-notes/templates/" +
+					template
+			)
+		);
 		return result;
 	}
 
 	async createPDF() {
 		await new PDFCreatorModal(this.app, async (result) => {
-			const pathToPlugin = normalizePath(
-				this.app.vault.configDir + "/plugins/obsidian-handwritten-notes/"
-			);
-			const pathToPdf = normalizePath(
-				pathToPlugin + "/" + result.template
-			);
-			console.log("Path to PDF: " + pathToPdf);
+
 			const useRoot = false;
 			const destFolder = useRoot
 				? this.app.vault.getRoot()
 				: this.app.workspace.getActiveFile()?.parent;
-
+			
 			if (destFolder) {
 				const template = await this.loadPdfTemplate(result.template);
 				console.log("Template: " + template);
@@ -179,21 +150,7 @@ export default class NotePDF extends Plugin {
 						toolbars[i].appendChild(button);
 					}
 				};
-				// else if md check if there are embedded pdfs
 			}
-			//  else if (activeFile?.extension === "md") {
-			// 	const embededPdfs = document.getElementsByClassName("pdf-embed");
-			// 	// Loop through all the elements with class 'pdf-embed' foreach does not work
-			// 	for (let i = 0; i < embededPdfs.length; i++) {
-			// 		// get its child pdf-toolbar
-			// 		const toolbar = embededPdfs[i].getElementsByClassName(
-			// 			"pdf-toolbar"
-			// 		)[0];
-			// 		if (!toolbar) continue;
-			// 		if (embededPdfs[i].contains(
-			// 			document.getElementById("annotate"+i)
-			// 		)) continue;
-
 		});
 
 	}
