@@ -48,8 +48,9 @@ export class PDFCreatorModal extends Modal {
 			});
 		});
 		new Setting(contentEl).setName("Template").addDropdown((dropDown) => {
-			dropDown.addOption("blank.pdf", "blank.pdf");
-			dropDown.addOption("lined.pdf", "lined.pdf");
+			dropDown.addOption("blank.pdf", "Blank");
+			dropDown.addOption("lined.pdf", "Lined");
+			dropDown.addOption("canvas.pdf", "Canvas");
 			dropDown.onChange(async (value) => {
 				this.result["template"] = value;
 			});
