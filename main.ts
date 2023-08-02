@@ -28,7 +28,7 @@ export class PDFCreatorModal extends Modal {
 		this.onSubmit = onSubmit;
 	}
 
-	onOpen() {
+	async onOpen() {
 		let { contentEl } = this;
 
 		contentEl.createEl("h1", { text: "Create New note" });
@@ -38,14 +38,33 @@ export class PDFCreatorModal extends Modal {
 				this.result["name"] = value;
 			});
 		});
-		new Setting(contentEl).setName("Template").addDropdown((dropDown) => {
-			dropDown.addOption("blank.pdf", "Blank");
-			dropDown.addOption("lined.pdf", "Lined");
-			dropDown.addOption("canvas.pdf", "Canvas");
-			dropDown.onChange(async (value) => {
-				this.result["template"] = value;
+		new Setting(contentEl)
+			.setName("Template")
+			.addDropdown(async (dropDown) => {
+				// read all files in the template folder
+				// add them to the dropdown menu
+				const templateFolder = normalizePath(
+					this.app.vault.configDir +
+						"/plugins/obsidian-handwritten-notes/templates/"
+				);
+
+				const files = (
+					await this.app.vault.adapter.list(templateFolder)
+				).files;
+				for (let i = 0; i < files.length; i++) {
+					// get the file name, it is the last part of the path
+					const file = files[i].split("/").pop();
+					if (!file) continue; // skip if the file is null
+					// check if the file is a pdf
+					if (file.split(".")[1] !== "pdf") continue;
+					// name should be the filename without the extension and capitalized
+					const fileName = file?.split(".")[0]?.charAt(0).toUpperCase() + file?.split(".")[0]?.slice(1);
+					dropDown.addOption(file, fileName);
+				}
+				dropDown.onChange((value) => {
+					this.result["template"] = value;
+				});
 			});
-		});
 		new Setting(contentEl).addButton((btn) =>
 			btn
 				.setButtonText("Submit")
@@ -90,13 +109,25 @@ export default class NotePDF extends Plugin {
 				console.log("Template: " + template);
 				const path = destFolder.path + "/" + result.name + ".pdf";
 				console.log("Creating PDF at " + path);
+				try {
 				await this.app.vault.createBinary(path, template);
+				} catch (e) {
+					// see if error is because file already exists
+					if (e.message.includes("already exists")) {
+						// if the file already exists, show a notice
+						new Notice("File already exists!");
+						console.log(e);
+					} else {
+						new Notice("Error creating file! Note: " + e.message);
+						 
+						console.log(e); 
+				}
 			}
+		}
 		}).open();
 	}
-    addAnnotateButton() {
+	addAnnotateButton() {
 		console.log("Active leaf changed!");
-
 		const active_view = app.workspace.getActiveViewOfType(View);
 		if (!active_view) return;
 		let view_type = active_view.getViewType();
@@ -112,9 +143,7 @@ export default class NotePDF extends Plugin {
 		for (let i = 0; i < toolbars.length; i++) {
 			//  check if it has a child with id 'annotate'
 			if (
-				!toolbars[i].contains(
-					document.getElementById("annotate" + i)
-				)
+				!toolbars[i].contains(document.getElementById("annotate" + i))
 			) {
 				// add a child inside markdownPreviewSizer
 				const button = doc.createElement("button");
