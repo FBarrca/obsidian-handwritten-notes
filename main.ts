@@ -94,7 +94,42 @@ export default class NotePDF extends Plugin {
 			}
 		}).open();
 	}
+    addAnnotateButton() {
+		console.log("Active leaf changed!");
 
+		const active_view = app.workspace.getActiveViewOfType(View);
+		if (!active_view) return;
+		let view_type = active_view.getViewType();
+		if (view_type !== "pdf") return;
+
+		console.log("PDF file opened!");
+		//  find HTML element with class 'markdown-preview-sizer'
+		// get Document
+		const doc = active_view.containerEl.ownerDocument;
+		console.log(doc);
+		const toolbars = document.getElementsByClassName("pdf-toolbar");
+		//  Loop through all the elements with class 'markdown-preview-sizer'
+		for (let i = 0; i < toolbars.length; i++) {
+			//  check if it has a child with id 'annotate'
+			if (
+				!toolbars[i].contains(
+					document.getElementById("annotate" + i)
+				)
+			) {
+				// add a child inside markdownPreviewSizer
+				const button = doc.createElement("button");
+				// give it an id of 'annotate' + i
+				button.id = "annotate" + i;
+				button.innerHTML = "Annotate";
+				button.onclick = () => {
+					this.app.commands.executeCommandById(
+						"open-with-default-app:open"
+					);
+				};
+				toolbars[i].appendChild(button);
+			}
+		}
+	}
 	async onload() {
 		const ribbonIconEl = this.addRibbonIcon(
 			"pencil",
@@ -112,41 +147,9 @@ export default class NotePDF extends Plugin {
 			},
 		});
 
+		this.addAnnotateButton(); // Also try to add the button when the plugin is loaded
 		this.app.workspace.on("active-leaf-change", () => {
-			console.log("Active leaf changed!");
-
-			const active_view = app.workspace.getActiveViewOfType(View);
-			if (!active_view) return;
-			let view_type = active_view.getViewType();
-			if (view_type !== "pdf") return;
-
-			console.log("PDF file opened!");
-			//  find HTML element with class 'markdown-preview-sizer'
-			// get Document
-			const doc = active_view.containerEl.ownerDocument;
-			console.log(doc);
-			const toolbars = document.getElementsByClassName("pdf-toolbar");
-			//  Loop through all the elements with class 'markdown-preview-sizer'
-			for (let i = 0; i < toolbars.length; i++) {
-				//  check if it has a child with id 'annotate'
-				if (
-					!toolbars[i].contains(
-						document.getElementById("annotate" + i)
-					)
-				) {
-					// add a child inside markdownPreviewSizer
-					const button = doc.createElement("button");
-					// give it an id of 'annotate' + i
-					button.id = "annotate" + i;
-					button.innerHTML = "Annotate";
-					button.onclick = () => {
-						this.app.commands.executeCommandById(
-							"open-with-default-app:open"
-						);
-					};
-					toolbars[i].appendChild(button);
-				}
-			}
+			this.addAnnotateButton();
 		});
 	}
 }
