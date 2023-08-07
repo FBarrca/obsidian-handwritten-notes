@@ -1,10 +1,10 @@
 {
-  "id":  "obsidian-handwritten-notes",
+  "id":  "handwritten-notes",
   "name": "Handwritten Notes",
   "author": "FBarrCa",
   "authorUrl": "https://github.com/FBarrca/",
   "fundingUrl": "https://www.buymeacoffee.com/FBarrCa",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Annotate PDFs and create handwritten notes inside your vault.",
   "isDesktopOnly": false,
   "js": "main.js"
