@@ -1,22 +1,13 @@
-# vscode
-.vscode 
-
-# Intellij
-*.iml
-.idea
+dist/
 
 # npm
 node_modules
+package-lock.json
 
-# Don't include the compiled main.js file in the repo.
-# They should be uploaded to GitHub releases instead.
+# Outputs
 main.js
+*.js.map
 
-# Exclude sourcemaps
-*.map
-
-# obsidian
-data.json
-
-# Exclude macOS Finder (System Explorer) View States
-.DS_Store
+# Comment one of the following lock file in your plugin!
+pnpm-lock.yaml
+npm-lock.yaml
