@@ -14,21 +14,22 @@ An illustrative demo on note creation and annotation. Although slightly outdated
 
 ## 🚀 Features
 
-Though in its budding phase, the plugin has rolled out:
+The plugin is still in early development, but the following features are already implemented:
 
-- [x] Varied paper template selections for new notes
-- [x] Annotations on extant notes
+- [x] Create new notes from different paper templates
+- [x] Annotations on existing notes
 
-> With Obsidian’s innate features, amplify your handwritten notes:
->
-> - [x] Embed in other markdown notes
-> - [x] Reference from other markdown notes
+In addition, as you have the following features available in Obsidian, you can use them with your handwritten notes:
+
+- [x] Embed notes in other md notes
+- [x] Reference handwritten notes from other md notes
+
 
 ## 📅 Planned Features
 
-The road ahead includes:
+The following features are planned for the future:
 
-- [ ] Interlinking markdown and handwritten notes
+- [ ] Link md notes to handwritten notes
 
 ## ⚠️ Known Issues
 
