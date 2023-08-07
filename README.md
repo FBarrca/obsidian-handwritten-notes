@@ -8,7 +8,7 @@ Designed to seamlessly incorporate stylus notes into your workflow, this plugin 
 
 ## 🎥 Demo
 
-An illustrative demo on note creation and annotation. Although slightly outdated, the fundamental features remain unchanged.
+This is a demo of the plugin, showing how to create a new note, and how to annotate an existing note. It is a bit outdated, but the basic functionality is still the same.
 
 [![Watch a demo of the plugin](https://img.youtube.com/vi/dkdKeCJzVQA/default.jpg)](https://youtu.be/dkdKeCJzVQA)
 
