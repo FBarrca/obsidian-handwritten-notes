@@ -5,6 +5,8 @@ import {
   Notice,
   Plugin,
   requestUrl,
+  ButtonComponent,
+
 } from "obsidian";
 
 /** @const {string} */
@@ -76,14 +78,20 @@ export function appendAnnotateButton(
   const buttonId = "annotate" + i;
 
   if (!toolbar.contains(document.getElementById(buttonId))) {
-    const button = document.createElement("button");
-    button.id = buttonId;
-    button.innerHTML = "Annotate";
-    button.onclick = () =>
+    const buttonId = `annotate${i}`;
+
+    // Check if the button already exists before appending
+    if (toolbar.contains(document.getElementById(buttonId))) return;
+    const button = new ButtonComponent(toolbar).setIcon("pencil")
+    // give it a unique id so we can find it later
+    button.buttonEl.id = buttonId;
+    button.setTooltip("Annotate");
+    button.buttonEl.style.boxShadow = "none";
+    button.buttonEl.style.cssFloat = "right";
+    button.onClick ( () => {
       // @ts-ignore - commands doesnt exist on type App for some reason
       app.commands.executeCommandById("open-with-default-app:open");
-
-    toolbar.appendChild(button);
+    });
   }
 }
 
