@@ -1,4 +1,4 @@
-import { Notice, Plugin, TFile, TFolder, normalizePath } from "obsidian";
+import { Notice, Platform, Plugin, TFile, TFolder, normalizePath } from "obsidian";
 import { PDFCreatorModal } from "./CreatorModal";
 import {
   loadPdfTemplate,
@@ -13,7 +13,7 @@ import {
   PluginSettings,
   DEFAULT_SETTINGS,
 } from "./settings";
-import { AppWithDesktopInternalApi } from "./utils/helpers";
+import { AppWithDesktopInternalApi, FileSystemAdapterWithInternalApi } from "./utils/helpers";
 
 export default class NotePDF extends Plugin {
   settings: PluginSettings;
@@ -98,6 +98,7 @@ export default class NotePDF extends Plugin {
     const toolbars = document.getElementsByClassName("pdf-toolbar");
     for (let i = 0; i < toolbars.length; i++) {
       appendAnnotateButton(toolbars[i] as HTMLElement, i,  () =>
+        //@ts-ignore
         app.commands.executeCommandById("open-with-default-app:open")
       );
     }
@@ -124,7 +125,7 @@ export default class NotePDF extends Plugin {
           toolbar as HTMLElement, 
           index, 
           async () => {
-            await (this.app as AppWithDesktopInternalApi).openWithDefaultApp(pdfFile.path);
+            await this.openEmbeddedPDF(pdfFile);
           }
         );
         
@@ -142,7 +143,7 @@ export default class NotePDF extends Plugin {
           toolbar as HTMLElement, 
           index,  
           async () => {
-            await (this.app as AppWithDesktopInternalApi).openWithDefaultApp(pdfFile.path);
+            await this.openEmbeddedPDF(pdfFile);
           }
         );
         
@@ -150,4 +151,13 @@ export default class NotePDF extends Plugin {
     });
     observer.observe(embed, { childList: true, subtree: true });
   }
+
+ async openEmbeddedPDF(pdfFile: TFile) {
+    if (Platform.isDesktop) {
+      await (this.app as AppWithDesktopInternalApi).openWithDefaultApp(pdfFile.path);
+    } else {
+      await (this.app.vault.adapter as FileSystemAdapterWithInternalApi).open(pdfFile.path);
+    }
+  }  
+
 }

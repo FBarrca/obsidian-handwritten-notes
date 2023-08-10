@@ -5,3 +5,6 @@ export interface AppWithDesktopInternalApi extends App {
     showInFolder(path: string): Promise<void>;
 }
 
+export interface FileSystemAdapterWithInternalApi extends FileSystemAdapter {
+    open(path: string): Promise<void>
+}
