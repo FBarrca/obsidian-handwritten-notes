@@ -83,16 +83,48 @@ export default class NotePDF extends Plugin {
     }).open();
   }
 
-  addAnnotateButton() {
-    const active_view = this.app.workspace.activeLeaf.view;
-    if (!active_view || active_view.getViewType() !== "pdf") return;
+  async addAnnotateButton() {
+    const activeView = this.app.workspace.activeLeaf.view;
+    if (!activeView) return;
+    if (activeView.getViewType() === "pdf") {
+      await this.addAnnotateButtonPDF();
+    } else if (activeView.getViewType() === "markdown") {
+      this.addAnnotateButtonMarkdown();
+    }
+  }
 
-    // Find HTML element with class 'pdf-toolbar'
+  async addAnnotateButtonPDF() {
     const toolbars = document.getElementsByClassName("pdf-toolbar");
-
-    // Loop through all the elements with class 'pdf-toolbar'
     for (let i = 0; i < toolbars.length; i++) {
       appendAnnotateButton(toolbars[i] as HTMLElement, i, this.app);
     }
+  }
+
+  addAnnotateButtonMarkdown() {
+    const pdfEmbeds = document.querySelectorAll(".pdf-embed");
+
+    Array.from(pdfEmbeds).forEach((embed, index) => {
+      const src = embed.getAttribute("src");
+      console.log(src);
+
+      let toolbar = embed.querySelector(".pdf-toolbar");
+      if (!toolbar) {
+        this.waitForToolbarAndAddButton(embed, index);
+      } else {
+        appendAnnotateButton(toolbar as HTMLElement, index, this.app);
+      }
+    });
+  }
+
+  // The toolbar might take some time to load
+  waitForToolbarAndAddButton(embed: any, index: any) {
+    const observer = new MutationObserver((mutations, obs) => {
+      const toolbar = embed.querySelector(".pdf-toolbar-right");
+      if (toolbar) {
+        obs.disconnect();
+        appendAnnotateButton(toolbar as HTMLElement, index, this.app);
+      }
+    });
+    observer.observe(embed, { childList: true, subtree: true });
   }
 }
