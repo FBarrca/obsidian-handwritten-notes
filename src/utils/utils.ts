@@ -69,11 +69,12 @@ export async function openCreatedFile(app: App, path: string): Promise<void> {
  * @param {HTMLElement} toolbar - The toolbar where the button will be appended.
  * @param {number} i - The id number of the button.
  * @param {App} app - The obsidian app instance.
+ * @param {() => Promise<void>} onClick - The async function to be executed when the button is clicked.
  */
 export function appendAnnotateButton(
   toolbar: HTMLElement,
   i: number,
-  app: App
+  onClick: () => Promise<void>
 ): void {
   const buttonId = "annotate" + i;
 
@@ -88,9 +89,14 @@ export function appendAnnotateButton(
     button.setTooltip("Annotate");
     button.buttonEl.style.boxShadow = "none";
     button.buttonEl.style.cssFloat = "right";
-    button.onClick ( () => {
-      // @ts-ignore - commands doesnt exist on type App for some reason
-      app.commands.executeCommandById("open-with-default-app:open");
+
+    // Handle the async onClick function
+    button.onClick(async () => {
+      try {
+        await onClick();
+      } catch (error) {
+        console.error("Error handling async onClick:", error);
+      }
     });
   }
 }
