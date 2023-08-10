@@ -1,4 +1,4 @@
-import { Notice, Plugin, TFolder, normalizePath } from "obsidian";
+import { Notice, Plugin, TFile, TFolder, normalizePath } from "obsidian";
 import { PDFCreatorModal } from "./CreatorModal";
 import {
   loadPdfTemplate,
@@ -13,6 +13,7 @@ import {
   PluginSettings,
   DEFAULT_SETTINGS,
 } from "./settings";
+import { AppWithDesktopInternalApi } from "./utils/helpers";
 
 export default class NotePDF extends Plugin {
   settings: PluginSettings;
@@ -96,33 +97,55 @@ export default class NotePDF extends Plugin {
   async addAnnotateButtonPDF() {
     const toolbars = document.getElementsByClassName("pdf-toolbar");
     for (let i = 0; i < toolbars.length; i++) {
-      appendAnnotateButton(toolbars[i] as HTMLElement, i, this.app);
+      appendAnnotateButton(toolbars[i] as HTMLElement, i,  () =>
+        app.commands.executeCommandById("open-with-default-app:open")
+      );
     }
   }
 
-  addAnnotateButtonMarkdown() {
+  async addAnnotateButtonMarkdown() {
     const pdfEmbeds = document.querySelectorAll(".pdf-embed");
 
-    Array.from(pdfEmbeds).forEach((embed, index) => {
-      const src = embed.getAttribute("src");
-      console.log(src);
+    for (const [index, embed] of Array.from(pdfEmbeds).entries()) {
+      let pdfFile: TFile;
+      const pdfLink = embed.getAttribute("src");
+      const currentNotePath = this.app.workspace.getActiveFile().path;
+      pdfFile = this.app.metadataCache.getFirstLinkpathDest(
+        pdfLink,
+        currentNotePath
+      );
+      console.log(pdfFile.path);
 
       let toolbar = embed.querySelector(".pdf-toolbar");
       if (!toolbar) {
-        this.waitForToolbarAndAddButton(embed, index);
+        this.waitForToolbarAndAddButton(embed, index, pdfFile);
       } else {
-        appendAnnotateButton(toolbar as HTMLElement, index, this.app);
+        appendAnnotateButton(
+          toolbar as HTMLElement, 
+          index, 
+          async () => {
+            await (this.app as AppWithDesktopInternalApi).openWithDefaultApp(pdfFile.path);
+          }
+        );
+        
       }
-    });
+    }
   }
 
   // The toolbar might take some time to load
-  waitForToolbarAndAddButton(embed: any, index: any) {
+  waitForToolbarAndAddButton(embed: any, index: any, pdfFile: TFile) {
     const observer = new MutationObserver((mutations, obs) => {
       const toolbar = embed.querySelector(".pdf-toolbar-right");
       if (toolbar) {
         obs.disconnect();
-        appendAnnotateButton(toolbar as HTMLElement, index, this.app);
+        appendAnnotateButton(
+          toolbar as HTMLElement, 
+          index,  
+          async () => {
+            await (this.app as AppWithDesktopInternalApi).openWithDefaultApp(pdfFile.path);
+          }
+        );
+        
       }
     });
     observer.observe(embed, { childList: true, subtree: true });
