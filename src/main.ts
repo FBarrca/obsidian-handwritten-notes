@@ -36,8 +36,10 @@ export default class NotePDF extends Plugin {
     this.app.workspace.onLayoutReady(() => {
       this.addAnnotateButton();
       initTemplatesFolder(this);
+      this.registerInterval(
+        window.setInterval(this.addAnnotateButton.bind(this), 1000)
+      );
     });
-    app.workspace.on("active-leaf-change", () => this.addAnnotateButton());
   }
 
   async loadSettings() {
@@ -115,7 +117,7 @@ export default class NotePDF extends Plugin {
         pdfLink,
         currentNotePath
       );
-      console.log(pdfFile.path);
+      // console.log(pdfFile.path);
 
       let toolbar = embed.querySelector(".pdf-toolbar");
       if (!toolbar) {
