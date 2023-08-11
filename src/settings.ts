@@ -82,7 +82,7 @@ class MyPluginSettingTab extends PluginSettingTab {
 
   private createSettingsHeader(): void {
     this.containerEl.createEl("h2", {
-      text: "New Note Settings",
+      text: "Create new note",
     });
   }
 
