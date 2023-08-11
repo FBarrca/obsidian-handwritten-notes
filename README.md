@@ -81,6 +81,8 @@ These are the editors I have tested: (If you have tested other editors, please P
 
 I have not tested any editors on iOS, but I assume that the same editors as on Android will work. Please add to this list if you have tested any editors.
 
+Update: It works great with the iPadOS 17 markup tool.
+
 ## 🛠️ How to compile the plugin
 
 Kickstart with dependencies:
@@ -96,3 +98,6 @@ npm run build
 ```
 
 This will create a `main.js` file in the project root. That is the entry point of your plugin.
+🙏 Credits
+
+Thanks to [Obsidian copy url in preview](https://github.com/NomarCub/obsidian-copy-url-in-preview) for the type extensions used to interface with PDFs.
