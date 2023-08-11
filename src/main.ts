@@ -1,3 +1,4 @@
+// Obsidian imports
 import {
   Notice,
   Platform,
@@ -6,7 +7,14 @@ import {
   TFolder,
   normalizePath,
 } from "obsidian";
+
+// Local imports
 import { PDFCreatorModal } from "./CreatorModal";
+import {
+  MyPluginSettingTab,
+  PluginSettings,
+  DEFAULT_SETTINGS,
+} from "./settings";
 import {
   loadPdfTemplate,
   createBinaryFile,
@@ -14,12 +22,6 @@ import {
   appendAnnotateButton,
   initTemplatesFolder,
 } from "./utils/utils";
-
-import {
-  MyPluginSettingTab,
-  PluginSettings,
-  DEFAULT_SETTINGS,
-} from "./settings";
 import {
   AppWithDesktopInternalApi,
   FileSystemAdapterWithInternalApi,
@@ -27,11 +29,12 @@ import {
 
 export default class NotePDF extends Plugin {
   settings: PluginSettings;
+
+  // Lifecycle methods
   async onload() {
     await this.loadSettings();
     this.addSettingTab(new MyPluginSettingTab(this.app, this));
 
-    const { app } = this;
     this.addRibbonIcon("pencil", "Create empty handwritten note", () =>
       this.createPDF()
     );
@@ -42,7 +45,6 @@ export default class NotePDF extends Plugin {
       editorCallback: () => this.createPDF(),
     });
 
-    // PDF Annotate button
     this.app.workspace.onLayoutReady(() => {
       this.addAnnotateButton();
       initTemplatesFolder(this);
@@ -52,12 +54,16 @@ export default class NotePDF extends Plugin {
     });
   }
 
+  // Settings methods
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
   }
+
   async saveSettings() {
     await this.saveData(this.settings);
   }
+
+  // PDF creation methods
   async createPDF(): Promise<void> {
     const { app } = this;
     new PDFCreatorModal(app, this.manifest, async (result) => {
@@ -68,7 +74,6 @@ export default class NotePDF extends Plugin {
         const templateFolder = this.app.vault.getAbstractFileByPath(
           normalizePath(this.settings.templatePath)
         );
-        // if (templateFolder instanceof TFolder) opposite of instanceof
         if (templateFolder == null || !(templateFolder instanceof TFolder)) {
           await this.app.vault.createFolder(
             normalizePath(this.settings.templatePath)
@@ -81,7 +86,6 @@ export default class NotePDF extends Plugin {
 
       if (destFolder) {
         const { template, name } = result;
-
         const path = normalizePath(`${destFolder.path}/${name}.pdf`);
         const templatePath = this.manifest.dir + "/templates/" + template;
         await createBinaryFile(
@@ -89,13 +93,12 @@ export default class NotePDF extends Plugin {
           await loadPdfTemplate(app, templatePath),
           path
         );
-        // alternativepath
-
         openCreatedFile(app, path);
       }
     }).open();
   }
 
+  // Annotation button methods
   async addAnnotateButton() {
     const activeView = this.app.workspace.activeLeaf.view;
     if (!activeView) return;
@@ -118,7 +121,6 @@ export default class NotePDF extends Plugin {
 
   async addAnnotateButtonMarkdown() {
     const pdfEmbeds = document.querySelectorAll(".pdf-embed");
-
     for (const [index, embed] of Array.from(pdfEmbeds).entries()) {
       let pdfFile: TFile;
       const pdfLink = embed.getAttribute("src");
@@ -136,6 +138,7 @@ export default class NotePDF extends Plugin {
     }
   }
 
+  // Miscellaneous methods
   async openEmbeddedPDF(pdfFile: TFile) {
     if (Platform.isDesktop) {
       await (this.app as AppWithDesktopInternalApi).openWithDefaultApp(
