@@ -1,5 +1,11 @@
 // Obsidian imports
-import { App, Setting, PluginSettingTab, ButtonComponent, Platform } from "obsidian";
+import {
+  App,
+  Setting,
+  PluginSettingTab,
+  ButtonComponent,
+  Platform,
+} from "obsidian";
 
 // Local imports
 import { AppWithDesktopInternalApi } from "./utils/helpers";
@@ -17,8 +23,7 @@ interface PluginSettings {
   templatePath: string;
   assetUrl: string;
   useRelativePaths: boolean;
-
-    openNewNote: boolean;
+  openNewNote: boolean;
 }
 
 const DEFAULT_SETTINGS: PluginSettings = {
@@ -26,10 +31,10 @@ const DEFAULT_SETTINGS: PluginSettings = {
   assetUrl: "",
   useRelativePaths: false,
   openNewNote: true,
-
 };
 
 const TEMPLATE_DIR = "/templates/";
+
 const SETTINGS_OPTIONS: Option[] = [
   {
     name: "Blank",
@@ -67,16 +72,22 @@ class MyPluginSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    this.createSettingsHeader(containerEl);
-    this.createRelativePathToggle(containerEl);
-    this.createDefaultPathTextInput(containerEl);
-    this.createOpenNewNoteToggle(containerEl);
-    this.createTemplatesSection(containerEl);
-    this.createSettingWithOptions(containerEl);
+    this.createSettingsHeader();
+    this.createRelativePathToggle();
+    this.createDefaultPathTextInput();
+    this.createOpenNewNoteToggle();
+    this.createTemplatesSection();
+    this.createSettingWithOptions();
   }
-    createOpenNewNoteToggle(containerEl: HTMLElement) {
-    
-    new Setting(containerEl)
+
+  private createSettingsHeader(): void {
+    this.containerEl.createEl("h2", {
+      text: "New Note Settings",
+    });
+  }
+
+  private createOpenNewNoteToggle(): void {
+    new Setting(this.containerEl)
       .setName("Open new note")
       .setDesc("Open new note after creating it.")
       .addToggle((toggle) =>
@@ -84,15 +95,10 @@ class MyPluginSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.openNewNote)
           .onChange((value) => (this.plugin.settings.openNewNote = value))
       );
-    }
-  private createSettingsHeader(containerEl: HTMLElement) {
-    containerEl.createEl("h2", {
-      text: "New Note Settings",
-    });
   }
 
-  private createRelativePathToggle(containerEl: HTMLElement) {
-    new Setting(containerEl)
+  private createRelativePathToggle(): void {
+    new Setting(this.containerEl)
       .setName("Use relative path")
       .setDesc("Use relative path for the template path.")
       .addToggle((toggle) =>
@@ -102,8 +108,8 @@ class MyPluginSettingTab extends PluginSettingTab {
       );
   }
 
-  private createDefaultPathTextInput(containerEl: HTMLElement) {
-    new Setting(containerEl)
+  private createDefaultPathTextInput(): void {
+    new Setting(this.containerEl)
       .setName("Default Path for new notes")
       .setDesc("Path to be used if relative path is disabled.")
       .addText((text) =>
@@ -117,36 +123,37 @@ class MyPluginSettingTab extends PluginSettingTab {
       );
   }
 
-  private createTemplatesSection(containerEl: HTMLElement) {
-    const titleEl = containerEl.createEl("h2", { text: "Templates" });
-    
-    if (Platform.isDesktop) this.createFolderButton(titleEl);
-    containerEl.createEl("p", {
+  private createTemplatesSection(): void {
+    const titleEl = this.containerEl.createEl("h2", { text: "Templates" });
+
+    if (Platform.isDesktop) {
+      this.createFolderButton(titleEl);
+    }
+
+    this.containerEl.createEl("p", {
       text: "You can use any PDF as a template for the notes. Here are some examples:",
     });
   }
 
-  private createFolderButton(parentEl: HTMLElement) {
+  private createFolderButton(parentEl: HTMLElement): void {
     const folderButton = new ButtonComponent(parentEl).setIcon("folder");
     folderButton.buttonEl.style.boxShadow = "none";
     folderButton.buttonEl.style.cssFloat = "right";
+
     folderButton.onClick(() => {
       (this.app as AppWithDesktopInternalApi).showInFolder(
-        this.plugin.manifest.dir + "/templates/blank.pdf"
+        this.plugin.manifest.dir + TEMPLATE_DIR + "blank.pdf"
       );
-      //   this.plugin.app.workspace.openLinkText(this.plugin.settings.templatePath, "", true);
     });
-    parentEl.insertAdjacentElement("beforeend", folderButton.buttonEl);
   }
 
-  private async createSettingWithOptions(containerEl: HTMLElement) {
-    SETTINGS_OPTIONS.forEach(async (option) => {
-      const setting = new Setting(containerEl)
+  private async createSettingWithOptions(): Promise<void> {
+    for (const option of SETTINGS_OPTIONS) {
+      const setting = new Setting(this.containerEl)
         .setName(option.name)
         .setDesc(option.desc);
 
-      // Don't add buttons for default options
-      if (option.isDefault) return;
+      if (option.isDefault) continue;
 
       const templatePath =
         this.plugin.manifest.dir + TEMPLATE_DIR + option.fileName;
@@ -164,30 +171,22 @@ class MyPluginSettingTab extends PluginSettingTab {
             .onClick(async () => await this.downloadAsset(option, templatePath))
         );
       }
-    });
+    }
   }
 
-  private async downloadAsset(option: Option, path: string) {
-    // Add your download implementation here
+  private async downloadAsset(option: Option, path: string): Promise<void> {
     console.log(`Downloading asset from: ${option.downloadUrl}`);
-
     await downloadFile(this.app, option.downloadUrl, path);
     this.display();
   }
 
-  private async deleteAsset(option: Option) {
-    // Add your delete implementation here
+  private async deleteAsset(option: Option): Promise<void> {
     const templatePath =
-      this.plugin.manifest.dir + "/templates/" + option.fileName;
+      this.plugin.manifest.dir + TEMPLATE_DIR + option.fileName;
 
     try {
-      // Delete the file using Obsidian's Virtual File System (vfs)
       await this.app.vault.adapter.remove(templatePath);
-
       console.log(`Deleted asset: ${option.name}`);
-      this.display();
-
-      // Refresh the display after deleting
       this.display();
     } catch (err) {
       console.error(`Error deleting asset ${option.name}:`, err);
