@@ -102,3 +102,4 @@ This will create a `main.js` file in the project root. That is the entry point o
 ## 🙏 Credits
 
 Thanks to [Obsidian copy url in preview](https://github.com/NomarCub/obsidian-copy-url-in-preview) for the type extensions used to interface with PDFs.
+Thanks to [DataLoom](https://github.com/trey-wallis/obsidian-dataloom) for the onboarding screen.

@@ -26,6 +26,7 @@ import {
   AppWithDesktopInternalApi,
   FileSystemAdapterWithInternalApi,
 } from "./utils/helpers";
+import WelcomeModal from "./dialogs/ReleaseNotes";
 
 export default class NotePDF extends Plugin {
   settings: PluginSettings;
@@ -52,6 +53,11 @@ export default class NotePDF extends Plugin {
         window.setInterval(this.addAnnotateButton.bind(this), 1000)
       );
     });
+    if (this.settings.showWelcomeModal) {
+			new WelcomeModal(app).open();
+			this.settings.showWelcomeModal = false;
+			await this.saveSettings();
+		}
   }
 
   // Settings methods
