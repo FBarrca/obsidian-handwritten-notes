@@ -24,13 +24,15 @@ interface PluginSettings {
   assetUrl: string;
   useRelativePaths: boolean;
   openNewNote: boolean;
+  showWelcomeModal: boolean;
 }
 
 const DEFAULT_SETTINGS: PluginSettings = {
-  templatePath: "/pdf-templates/",
+  templatePath: "/handwritten-notes/",
   assetUrl: "",
   useRelativePaths: false,
   openNewNote: true,
+  showWelcomeModal: true,
 };
 
 const TEMPLATE_DIR = "/templates/";
