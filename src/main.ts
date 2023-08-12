@@ -9,7 +9,7 @@ import {
 } from "obsidian";
 
 // Local imports
-import { PDFCreatorModal } from "./CreatorModal";
+import { PDFCreatorModal } from "./dialogs/CreatorModal";
 import {
   MyPluginSettingTab,
   PluginSettings,
