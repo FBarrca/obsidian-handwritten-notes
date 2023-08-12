@@ -83,7 +83,7 @@ export function appendAnnotateButton(
 
     // Check if the button already exists before appending
     if (toolbar.contains(document.getElementById(buttonId))) return;
-    const button = new ButtonComponent(toolbar).setIcon("pencil")
+    const button = new ButtonComponent(toolbar).setIcon('pen-tool')
     // give it a unique id so we can find it later
     button.buttonEl.id = buttonId;
     button.setTooltip("Annotate");
