@@ -55,7 +55,7 @@ export default class NotePDF extends Plugin {
     });
     // Show welcome modal
     if (this.settings.showWelcomeModal) {
-			new WelcomeModal(app).open();
+			new WelcomeModal(this.app).open();
 			this.settings.showWelcomeModal = false;
 			await this.saveSettings();
 		}
