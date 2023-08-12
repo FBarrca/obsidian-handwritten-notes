@@ -4,7 +4,7 @@
   "author": "FBarrCa",
   "authorUrl": "https://github.com/FBarrca/",
   "fundingUrl": "https://www.buymeacoffee.com/FBarrCa",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "Annotate PDFs and create handwritten notes inside your vault.",
   "isDesktopOnly": false,
   "js": "main.js"
