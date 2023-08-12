@@ -11,3 +11,4 @@ main.js
 # Comment one of the following lock file in your plugin!
 pnpm-lock.yaml
 npm-lock.yaml
+data.json
