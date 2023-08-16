@@ -140,8 +140,8 @@ class NotePDFSettingsTab extends PluginSettingTab {
 
   private createFolderButton(parentEl: HTMLElement): void {
     const folderButton = new ButtonComponent(parentEl).setIcon("folder");
-    folderButton.buttonEl.style.boxShadow = "none";
-    folderButton.buttonEl.style.cssFloat = "right";
+    folderButton.buttonEl.classList.add("settings-folder-button");
+
 
     folderButton.onClick(() => {
       (this.app as AppWithDesktopInternalApi).showInFolder(

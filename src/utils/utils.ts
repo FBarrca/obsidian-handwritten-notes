@@ -87,10 +87,7 @@ export function appendAnnotateButton(
     // give it a unique id so we can find it later
     button.buttonEl.id = buttonId;
     button.setTooltip("Annotate");
-    // padding vertical 4 px, horizontal 6 px
-    button.buttonEl.style.padding = "4px 6px";
-    button.buttonEl.style.boxShadow = "none";
-    button.buttonEl.style.cssFloat = "right";
+    button.buttonEl.classList.add("pdf-annotate-button");
 
     // Handle the async onClick function
     button.onClick(async () => {

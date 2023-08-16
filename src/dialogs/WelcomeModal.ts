@@ -140,13 +140,8 @@ export default class WelcomeModal extends Modal {
     const shareimg = this.instructionsContainer.createEl("img", {
       attr: { src: AndroidShareImage, alt: "Android Share Menu" },
     });
-    shareimg.style.width = "100%";
-    shareimg.style.maxWidth = "300px";
-    // center horizontally
-    shareimg.style.margin = "0 auto";
-    shareimg.style.display = "block";
-    shareimg.style.marginLeft = "auto";
-    shareimg.style.marginRight = "auto";
+    shareimg.classList.add("share-img");
+
     MarkdownRenderer.render(
       this.app,
       `3. Edit the PDF in your editor of choice.

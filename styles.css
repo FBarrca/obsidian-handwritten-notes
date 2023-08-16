@@ -1,0 +1,23 @@
+
+.pdf-annotate-button {
+    padding: 4px 6px;
+    box-shadow: none;
+    float: right;
+}
+
+
+.settings-folder-button {
+    padding: 4px 6px;
+    box-shadow: none;
+    float: right;
+}
+
+
+.share-img {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
