@@ -29,10 +29,15 @@ jobs:
           zip -r ${{ env.PLUGIN_NAME }}.zip ${{ env.PLUGIN_NAME }}
           ls
           echo "::set-output name=tag_name::$(git tag --sort version:refname | tail -n 1)"
-      - name: Get commit messages since last release
+      - name: Get commit messages between last and previous release
         id: get_commits
         run: |
-          COMMITS=$(git log $(git describe --tags --abbrev=0)..HEAD --pretty=format:"- %s")
+          SECOND_LAST_TAG=$(git tag --sort=-version:refname | sed -n '2p')
+          if [ "$SECOND_LAST_TAG" != "" ]; then
+              COMMITS=$(git log $SECOND_LAST_TAG..$(git describe --tags --abbrev=0) --pretty=format:"- %s")
+          else
+              COMMITS=$(git log --pretty=format:"- %s")
+          fi
           echo "::set-output name=commits::$COMMITS"
       - name: Create Release
         id: create_release
