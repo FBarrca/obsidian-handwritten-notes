@@ -10,6 +10,7 @@ import {
 // Local imports
 import { AppWithDesktopInternalApi } from "./utils/helpers";
 import { downloadFile, fileExists } from "./utils/utils";
+import NotePDF from "./main";
 
 interface Option {
   name: string;
@@ -62,10 +63,10 @@ const SETTINGS_OPTIONS: Option[] = [
   },
 ];
 
-class MyPluginSettingTab extends PluginSettingTab {
-  private readonly plugin: any;
+class NotePDFSettingsTab extends PluginSettingTab {
+  private readonly plugin: NotePDF;
 
-  constructor(app: App, plugin: any) {
+  constructor(app: App, plugin: NotePDF) {
     super(app, plugin);
     this.plugin = plugin;
   }
@@ -196,4 +197,4 @@ class MyPluginSettingTab extends PluginSettingTab {
   }
 }
 
-export { MyPluginSettingTab, DEFAULT_SETTINGS, PluginSettings };
+export { NotePDFSettingsTab, DEFAULT_SETTINGS, PluginSettings };

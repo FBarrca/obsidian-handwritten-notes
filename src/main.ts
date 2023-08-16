@@ -11,7 +11,7 @@ import {
 // Local imports
 import { PDFCreatorModal } from "./dialogs/CreatorModal";
 import {
-  MyPluginSettingTab,
+  NotePDFSettingsTab,
   PluginSettings,
   DEFAULT_SETTINGS,
 } from "./settings";
@@ -34,7 +34,7 @@ export default class NotePDF extends Plugin {
   // Lifecycle methods
   async onload() {
     await this.loadSettings();
-    this.addSettingTab(new MyPluginSettingTab(this.app, this));
+    this.addSettingTab(new NotePDFSettingsTab(this.app, this));
 
     this.addRibbonIcon("pencil", "Create empty handwritten note", () =>
       this.createPDF()
