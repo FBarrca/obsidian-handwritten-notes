@@ -22,7 +22,7 @@ export class PDFCreatorModal extends Modal {
   async onOpen() {
     let { contentEl } = this;
 
-    contentEl.createEl("h1", { text: "Create New note" });
+    contentEl.createEl("h1", { text: "Create new note from template" });
     new Setting(contentEl).setName("Name").addText((text) => {
       text.setValue(this.result["name"]);
       text.onChange((value) => {
