@@ -122,9 +122,9 @@ export async function initTemplatesFolder(plugin: Plugin): Promise<void> {
   if (await fileExists(plugin.app, defaultTemplatePath)) return;	
   // Download default template if it doesn't exist
     const TEMPLATE_URL = "https://mag.wcoomd.org/uploads/2018/05/blank.pdf";
-    console.log("Downloading template from " + TEMPLATE_URL);
+    // console.log("Downloading template from " + TEMPLATE_URL);
     await downloadFile(plugin.app, TEMPLATE_URL, defaultTemplatePath);
-    console.log("Downloaded template to " + defaultTemplatePath);
+    // console.log("Downloaded template to " + defaultTemplatePath);
 }
 
 /**

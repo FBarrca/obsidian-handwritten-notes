@@ -56,7 +56,7 @@ export default class NotePDF extends Plugin {
     // Show welcome modal
     if (this.settings.showWelcomeModal) {
 			new WelcomeModal(this.app, this).open();
-			this.settings.showWelcomeModal = false;
+			// this.settings.showWelcomeModal = false;
 			await this.saveSettings();
 		}
   }
@@ -76,7 +76,7 @@ export default class NotePDF extends Plugin {
     new PDFCreatorModal(app, this.manifest, async (result) => {
       let destFolder =
         app.workspace.getActiveFile()?.parent || app.vault.getRoot();
-      console.log(`Using relative paths: ${this.settings.useRelativePaths}`);
+      // console.log(`Using relative paths: ${this.settings.useRelativePaths}`);
       if (!this.settings.useRelativePaths) {
         const templateFolder = this.app.vault.getAbstractFileByPath(
           normalizePath(this.settings.templatePath)
@@ -121,7 +121,7 @@ export default class NotePDF extends Plugin {
     for (let i = 0; i < toolbars.length; i++) {
       appendAnnotateButton(toolbars[i] as HTMLElement, i, () =>
         //@ts-ignore
-        app.commands.executeCommandById("open-with-default-app:open")
+        this.app.commands.executeCommandById("open-with-default-app:open")
       );
     }
   }

@@ -94,6 +94,7 @@ export default class WelcomeModal extends Modal {
 
   private renderPlatformSpecificInstructions() {
     const currentPlatform = this.detectCurrentPlatform();
+	// console.log(`Current platform: ${currentPlatform}`);
 
     if (currentPlatform) {
       this.renderInstructions(currentPlatform);
