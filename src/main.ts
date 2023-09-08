@@ -7,7 +7,7 @@ import {
   TFolder,
   normalizePath,
 } from "obsidian";
-
+import { createPdf } from "./pdfCreator";
 // Local imports
 import { PDFCreatorModal } from "./dialogs/CreatorModal";
 import {
@@ -39,7 +39,7 @@ export default class NotePDF extends Plugin {
     this.addRibbonIcon("pencil", "Create empty handwritten note", () =>
       this.createPDF()
     );
-
+    createPdf();
     this.addCommand({
       id: "create-empty-pdf-note",
       name: "Create and open an empty handwritten note",
