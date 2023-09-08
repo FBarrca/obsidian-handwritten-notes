@@ -1,10 +1,10 @@
 {
-  "id":  "handwritten-notes",
+  "id": "handwritten-notes",
   "name": "Handwritten Notes",
   "author": "FBarrCa",
   "authorUrl": "https://github.com/FBarrca/",
   "fundingUrl": "https://www.buymeacoffee.com/FBarrCa",
-  "version": "1.1.9",
+  "version": "1.2.3",
   "description": "Annotate PDFs and create handwritten notes inside your vault.",
   "isDesktopOnly": false
 }
