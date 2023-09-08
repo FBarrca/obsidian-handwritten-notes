@@ -55,10 +55,10 @@ export default class NotePDF extends Plugin {
     });
     // Show welcome modal
     if (this.settings.showWelcomeModal) {
-			new WelcomeModal(this.app, this).open();
-			this.settings.showWelcomeModal = false;
-			await this.saveSettings();
-		}
+      new WelcomeModal(this.app, this).open();
+      this.settings.showWelcomeModal = false;
+      await this.saveSettings();
+    }
   }
 
   // Settings methods
@@ -119,7 +119,7 @@ export default class NotePDF extends Plugin {
   async addAnnotateButtonPDF() {
     const toolbars = document.getElementsByClassName("pdf-toolbar");
     for (let i = 0; i < toolbars.length; i++) {
-      appendAnnotateButton(toolbars[i] as HTMLElement, i, () =>
+      appendAnnotateButton(toolbars[i] as HTMLElement, () =>
         //@ts-ignore
         this.app.commands.executeCommandById("open-with-default-app:open")
       );
@@ -139,7 +139,7 @@ export default class NotePDF extends Plugin {
 
       let toolbar = embed.querySelector(".pdf-toolbar");
       if (!toolbar) return;
-      appendAnnotateButton(toolbar as HTMLElement, index, async () => {
+      appendAnnotateButton(toolbar as HTMLElement, async () => {
         await this.openEmbeddedPDF(pdfFile);
       });
     }

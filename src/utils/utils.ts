@@ -6,7 +6,6 @@ import {
   Plugin,
   requestUrl,
   ButtonComponent,
-
 } from "obsidian";
 
 /** @const {string} */
@@ -67,37 +66,32 @@ export async function openCreatedFile(app: App, path: string): Promise<void> {
  * Appends an 'Annotate' button to the specified toolbar.
  *
  * @param {HTMLElement} toolbar - The toolbar where the button will be appended.
- * @param {number} i - The id number of the button.
  * @param {App} app - The obsidian app instance.
  * @param {() => Promise<void>} onClick - The async function to be executed when the button is clicked.
  */
 export function appendAnnotateButton(
   toolbar: HTMLElement,
-  i: number,
   onClick: () => Promise<void>
 ): void {
-  const buttonId = "annotate" + i;
+  // Check if the button already exists before appending
+  let matchingChild = toolbar.querySelector(".pdf-annotate-button");
+  if (matchingChild) return;
 
-  if (!toolbar.contains(document.getElementById(buttonId))) {
-    const buttonId = `annotate${i}`;
+  // Check if the button already exists before appending
+  const button = new ButtonComponent(toolbar).setIcon("pen-tool");
+  // give it a unique id so we can find it later
 
-    // Check if the button already exists before appending
-    if (toolbar.contains(document.getElementById(buttonId))) return;
-    const button = new ButtonComponent(toolbar).setIcon('pen-tool')
-    // give it a unique id so we can find it later
-    button.buttonEl.id = buttonId;
-    button.setTooltip("Annotate");
-    button.buttonEl.classList.add("pdf-annotate-button");
+  button.setTooltip("Annotate");
+  button.buttonEl.classList.add("pdf-annotate-button");
 
-    // Handle the async onClick function
-    button.onClick(async () => {
-      try {
-        await onClick();
-      } catch (error) {
-        console.error("Error handling async onClick:", error);
-      }
-    });
-  }
+  // Handle the async onClick function
+  button.onClick(async () => {
+    try {
+      await onClick();
+    } catch (error) {
+      console.error("Error handling async onClick:", error);
+    }
+  });
 }
 
 /**
@@ -116,12 +110,12 @@ export async function initTemplatesFolder(plugin: Plugin): Promise<void> {
   }
 
   const defaultTemplatePath = normalizePath(templatesFolder + "/blank.pdf");
-  if (await fileExists(plugin.app, defaultTemplatePath)) return;	
+  if (await fileExists(plugin.app, defaultTemplatePath)) return;
   // Download default template if it doesn't exist
-    const TEMPLATE_URL = "https://mag.wcoomd.org/uploads/2018/05/blank.pdf";
-    // console.log("Downloading template from " + TEMPLATE_URL);
-    await downloadFile(plugin.app, TEMPLATE_URL, defaultTemplatePath);
-    // console.log("Downloaded template to " + defaultTemplatePath);
+  const TEMPLATE_URL = "https://mag.wcoomd.org/uploads/2018/05/blank.pdf";
+  // console.log("Downloading template from " + TEMPLATE_URL);
+  await downloadFile(plugin.app, TEMPLATE_URL, defaultTemplatePath);
+  // console.log("Downloaded template to " + defaultTemplatePath);
 }
 
 /**
@@ -173,4 +167,3 @@ export async function fileExists(app: App, path: string): Promise<boolean> {
     return false;
   }
 }
-
