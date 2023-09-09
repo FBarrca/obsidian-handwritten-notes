@@ -15,10 +15,11 @@ import NotePDF from "./main";
 interface Option {
   name: string;
   desc: string;
-  fileName: string;
-  downloadUrl: string;
+
   isDefault: boolean;
 }
+
+interface PaperOptions
 
 interface PluginSettings {
   templatePath: string;
@@ -74,25 +75,31 @@ class NotePDFSettingsTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
-
-    this.createSettingsHeader();
-    this.createRelativePathToggle();
-    this.createDefaultPathTextInput();
-    this.createOpenNewNoteToggle();
+    this.containerEl.createEl("h1", {
+      text: "New note settings",
+    });
+    this.containerEl.createEl("h2", {
+      text: "Folder location",
+    });
+    this.RelativePathToggle();
+    this.defaultPathInput();
+    this.OpenNewNoteToggle();
+    this.containerEl.createEl("h2", {
+      text: "Templates",
+    });
+    this.createTemplatesSection();
+    this.createSettingWithOptions();
+    this.containerEl.createEl("h2", {
+      text: "Templates",
+    });
     this.createTemplatesSection();
     this.createSettingWithOptions();
   }
 
-  private createSettingsHeader(): void {
-    this.containerEl.createEl("h2", {
-      text: "Create new note",
-    });
-  }
-
-  private createOpenNewNoteToggle(): void {
+  private OpenNewNoteToggle(): void {
     new Setting(this.containerEl)
       .setName("Open new note")
-      .setDesc("Open new note after creating it.")
+      .setDesc("Open new note in active window after creating it.")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.openNewNote)
@@ -100,7 +107,7 @@ class NotePDFSettingsTab extends PluginSettingTab {
       );
   }
 
-  private createRelativePathToggle(): void {
+  private RelativePathToggle(): void {
     new Setting(this.containerEl)
       .setName("Use relative path")
       .setDesc("Use relative path for the template path.")
@@ -111,7 +118,7 @@ class NotePDFSettingsTab extends PluginSettingTab {
       );
   }
 
-  private createDefaultPathTextInput(): void {
+  private defaultPathInput(): void {
     new Setting(this.containerEl)
       .setName("Default Path for new notes")
       .setDesc("Path to be used if relative path is disabled.")
@@ -141,7 +148,6 @@ class NotePDFSettingsTab extends PluginSettingTab {
   private createFolderButton(parentEl: HTMLElement): void {
     const folderButton = new ButtonComponent(parentEl).setIcon("folder");
     folderButton.buttonEl.classList.add("settings-folder-button");
-
 
     folderButton.onClick(() => {
       (this.app as AppWithDesktopInternalApi).showInFolder(
