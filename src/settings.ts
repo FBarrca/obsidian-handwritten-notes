@@ -7,34 +7,18 @@ import {
   Platform,
 } from "obsidian";
 
+import {
+  DEFAULT_ASSET_PATH,
+  DEFAULT_TEMPLATE,
+  TEMPLATE_DIR,
+} from "./utils/constants";
+import { PluginSettings } from "./utils/types";
 // Local imports
 import { AppWithDesktopInternalApi } from "./utils/helpers";
 
 import NotePDF from "./main";
 
-interface PluginSettings {
-  templatePath: string;
-  assetUrl: string;
-  useRelativePaths: boolean;
-  openNewNote: boolean;
-  showWelcomeModal: boolean;
-  favoriteTemplate: string;
-}
-
-const TEMPLATE_DIR = "/templates/";
-
-const DEFAULT_TEMPLATE = "blank.pdf";
-
-const DEFAULT_SETTINGS: PluginSettings = {
-  templatePath: "/handwritten-notes/",
-  assetUrl: "",
-  useRelativePaths: false,
-  openNewNote: true,
-  showWelcomeModal: true,
-  favoriteTemplate: DEFAULT_TEMPLATE,
-};
-
-class NotePDFSettingsTab extends PluginSettingTab {
+export class NotePDFSettingsTab extends PluginSettingTab {
   private readonly plugin: NotePDF;
 
   constructor(app: App, plugin: NotePDF) {
@@ -45,32 +29,16 @@ class NotePDFSettingsTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
-
-    this.createSettingsHeader();
-    this.createRelativePathToggle();
-    this.createDefaultPathTextInput();
-    this.createOpenNewNoteToggle();
-    this.createTemplatesSection();
-    // make a scrollable container for the templates
-
-    this.createSettingWithOptions();
-  }
-
-  private createSettingsHeader(): void {
+    // GENERAL SETTINGS
     this.containerEl.createEl("h2", {
       text: "Create new note",
     });
-  }
+    this.createRelativePathToggle();
+    this.createDefaultPathTextInput();
 
-  private createOpenNewNoteToggle(): void {
-    new Setting(this.containerEl)
-      .setName("Open new note")
-      .setDesc("Open new note after creating it.")
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.openNewNote)
-          .onChange((value) => (this.plugin.settings.openNewNote = value))
-      );
+    // TEMPLATES
+    this.createTemplatesSection();
+    this.createSettingWithOptions();
   }
 
   private createRelativePathToggle(): void {
@@ -90,7 +58,7 @@ class NotePDFSettingsTab extends PluginSettingTab {
       .setDesc("Path to be used if relative path is disabled.")
       .addText((text) =>
         text
-          .setPlaceholder("/handwritten-notes/")
+          .setPlaceholder(DEFAULT_ASSET_PATH)
           .setValue(this.plugin.settings.templatePath)
           .onChange(async (value) => {
             this.plugin.settings.templatePath = value;
@@ -222,5 +190,3 @@ class NotePDFSettingsTab extends PluginSettingTab {
     );
   }
 }
-
-export { NotePDFSettingsTab, DEFAULT_SETTINGS, PluginSettings };
