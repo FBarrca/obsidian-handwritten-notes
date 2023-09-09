@@ -39,7 +39,7 @@ export default class NotePDF extends Plugin {
     this.addRibbonIcon("pencil", "Create empty handwritten note", () =>
       this.createPDF()
     );
-    createPdf();
+    // createPdf(this.app);
     this.addCommand({
       id: "create-empty-pdf-note",
       name: "Create and open an empty handwritten note",
