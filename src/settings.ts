@@ -18,6 +18,7 @@ interface Option {
   fileName: string;
   downloadUrl: string;
   isDefault: boolean;
+  isFavorite: boolean;
 }
 
 interface PluginSettings {
@@ -26,6 +27,7 @@ interface PluginSettings {
   useRelativePaths: boolean;
   openNewNote: boolean;
   showWelcomeModal: boolean;
+  favoriteTemplate: string;
 }
 
 const DEFAULT_SETTINGS: PluginSettings = {
@@ -34,6 +36,7 @@ const DEFAULT_SETTINGS: PluginSettings = {
   useRelativePaths: false,
   openNewNote: true,
   showWelcomeModal: true,
+  favoriteTemplate: "blank.pdf",
 };
 
 const TEMPLATE_DIR = "/templates/";
@@ -45,6 +48,7 @@ const SETTINGS_OPTIONS: Option[] = [
     desc: "A blank template. (Default)",
     downloadUrl: "",
     isDefault: true,
+    isFavorite: true,
   },
   {
     name: "Lined",
@@ -53,6 +57,7 @@ const SETTINGS_OPTIONS: Option[] = [
     downloadUrl:
       "https://www.inksandpens.com/content/files/paper-templates/A4%20Lined%205mm.pdf",
     isDefault: false,
+    isFavorite: false,
   },
   {
     name: "Canvas",
@@ -60,6 +65,7 @@ const SETTINGS_OPTIONS: Option[] = [
     desc: "A blank A0 for virtual whiteboard use",
     downloadUrl: "https://www.a0-size.com/download/118/?tmstv=1691357093",
     isDefault: false,
+    isFavorite: false,
   },
 ];
 
@@ -142,7 +148,6 @@ class NotePDFSettingsTab extends PluginSettingTab {
     const folderButton = new ButtonComponent(parentEl).setIcon("folder");
     folderButton.buttonEl.classList.add("settings-folder-button");
 
-
     folderButton.onClick(() => {
       (this.app as AppWithDesktopInternalApi).showInFolder(
         this.plugin.manifest.dir + TEMPLATE_DIR + "blank.pdf"
@@ -156,18 +161,33 @@ class NotePDFSettingsTab extends PluginSettingTab {
         .setName(option.name)
         .setDesc(option.desc);
 
-      if (option.isDefault) continue;
-
       const templatePath =
         this.plugin.manifest.dir + TEMPLATE_DIR + option.fileName;
 
+      // DOWNLOAD/ DELETE BUTTON and FAVORITE BUTTON
       if (await fileExists(this.app, templatePath)) {
+        // If the template exists, show a delete button and a favorite button
+        this.favoriteButton(setting, option);
+        if (option.isDefault) continue;
         setting.addButton((button) =>
-          button
-            .setIcon("trash")
-            .onClick(async () => await this.deleteAsset(option))
+          button.setIcon("trash").onClick(async () => {
+            // Check if the template is the favorite template
+            if (option.fileName === this.plugin.settings.favoriteTemplate) {
+              // Make the default template favorite
+              const defaultTemplate = SETTINGS_OPTIONS.find(
+                (option) => option.isDefault
+              );
+              if (defaultTemplate) {
+                defaultTemplate.isFavorite = true;
+                this.plugin.settings.favoriteTemplate =
+                  defaultTemplate.fileName;
+              }
+              await this.deleteAsset(option);
+            }
+          })
         );
       } else {
+        if (option.isDefault) continue;
         setting.addButton((button) =>
           button
             .setIcon("install")
@@ -175,6 +195,33 @@ class NotePDFSettingsTab extends PluginSettingTab {
         );
       }
     }
+  }
+
+  private favoriteButton(setting: Setting, option: Option): void {
+    setting.addButton((button) =>
+      button
+        .setIcon(option.isFavorite ? "star" : "crossed-star")
+        .onClick(() => {
+          console.log(`Favorite button clicked for ${option.name}`);
+          console.log(`Is favorite: ${option.isFavorite}`);
+          // if the template is not favorite, make it favorite else do nothing
+          if (option.isFavorite) return;
+          // remove the favorite icon from the previous favorite template
+          const previousFavoriteTemplate = SETTINGS_OPTIONS.find(
+            (option) => option.isFavorite
+          );
+          if (previousFavoriteTemplate) {
+            previousFavoriteTemplate.isFavorite = false;
+          }
+          // make the current template favorite
+          option.isFavorite = true;
+          // save the favorite template in the settings
+          this.plugin.settings.favoriteTemplate = option.fileName;
+          this.plugin.saveSettings();
+          // refresh the settings tab
+          this.display();
+        })
+    );
   }
 
   private async downloadAsset(option: Option, path: string): Promise<void> {
