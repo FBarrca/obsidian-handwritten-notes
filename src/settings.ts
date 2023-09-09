@@ -9,17 +9,8 @@ import {
 
 // Local imports
 import { AppWithDesktopInternalApi } from "./utils/helpers";
-import { downloadFile, fileExists } from "./utils/utils";
-import NotePDF from "./main";
 
-interface Option {
-  name: string;
-  desc: string;
-  fileName: string;
-  downloadUrl: string;
-  isDefault: boolean;
-  isFavorite: boolean;
-}
+import NotePDF from "./main";
 
 interface PluginSettings {
   templatePath: string;
@@ -30,44 +21,18 @@ interface PluginSettings {
   favoriteTemplate: string;
 }
 
+const TEMPLATE_DIR = "/templates/";
+
+const DEFAULT_TEMPLATE = "blank.pdf";
+
 const DEFAULT_SETTINGS: PluginSettings = {
   templatePath: "/handwritten-notes/",
   assetUrl: "",
   useRelativePaths: false,
   openNewNote: true,
   showWelcomeModal: true,
-  favoriteTemplate: "blank.pdf",
+  favoriteTemplate: DEFAULT_TEMPLATE,
 };
-
-const TEMPLATE_DIR = "/templates/";
-
-const SETTINGS_OPTIONS: Option[] = [
-  {
-    name: "Blank",
-    fileName: "blank.pdf",
-    desc: "A blank template. (Default)",
-    downloadUrl: "",
-    isDefault: true,
-    isFavorite: true,
-  },
-  {
-    name: "Lined",
-    fileName: "lined.pdf",
-    desc: "A 5mm lined A4",
-    downloadUrl:
-      "https://www.inksandpens.com/content/files/paper-templates/A4%20Lined%205mm.pdf",
-    isDefault: false,
-    isFavorite: false,
-  },
-  {
-    name: "Canvas",
-    fileName: "canvas.pdf",
-    desc: "A blank A0 for virtual whiteboard use",
-    downloadUrl: "https://www.a0-size.com/download/118/?tmstv=1691357093",
-    isDefault: false,
-    isFavorite: false,
-  },
-];
 
 class NotePDFSettingsTab extends PluginSettingTab {
   private readonly plugin: NotePDF;
@@ -86,6 +51,8 @@ class NotePDFSettingsTab extends PluginSettingTab {
     this.createDefaultPathTextInput();
     this.createOpenNewNoteToggle();
     this.createTemplatesSection();
+    // make a scrollable container for the templates
+
     this.createSettingWithOptions();
   }
 
@@ -145,102 +112,114 @@ class NotePDFSettingsTab extends PluginSettingTab {
   }
 
   private createFolderButton(parentEl: HTMLElement): void {
-    const folderButton = new ButtonComponent(parentEl).setIcon("folder");
-    folderButton.buttonEl.classList.add("settings-folder-button");
-
+    const folderButton = new ButtonComponent(parentEl)
+      .setIcon("folder")
+      .setClass("settings-button")
+      .setClass("settings-folder-button")
+      .setTooltip("Open templates folder in the explorer");
     folderButton.onClick(() => {
       (this.app as AppWithDesktopInternalApi).showInFolder(
-        this.plugin.manifest.dir + TEMPLATE_DIR + "blank.pdf"
+        this.plugin.manifest.dir + TEMPLATE_DIR + DEFAULT_TEMPLATE
       );
+    });
+    // Reload button
+    const reloadButton = new ButtonComponent(parentEl)
+      .setIcon("sync")
+      .setClass("settings-button")
+      .setClass("settings-folder-button")
+      .setTooltip("Reload templates");
+    reloadButton.onClick(() => {
+      this.display();
     });
   }
 
   private async createSettingWithOptions(): Promise<void> {
-    for (const option of SETTINGS_OPTIONS) {
-      const setting = new Setting(this.containerEl)
-        .setName(option.name)
-        .setDesc(option.desc);
+    const { containerEl } = this;
 
-      const templatePath =
-        this.plugin.manifest.dir + TEMPLATE_DIR + option.fileName;
+    const scrollContainer = containerEl.createDiv();
+    scrollContainer.addClass("settings-scroll-container");
 
-      // DOWNLOAD/ DELETE BUTTON and FAVORITE BUTTON
-      if (await fileExists(this.app, templatePath)) {
-        // If the template exists, show a delete button and a favorite button
-        this.favoriteButton(setting, option);
-        if (option.isDefault) continue;
-        setting.addButton((button) =>
-          button.setIcon("trash").onClick(async () => {
-            // Check if the template is the favorite template
-            if (option.fileName === this.plugin.settings.favoriteTemplate) {
-              // Make the default template favorite
-              const defaultTemplate = SETTINGS_OPTIONS.find(
-                (option) => option.isDefault
-              );
-              if (defaultTemplate) {
-                defaultTemplate.isFavorite = true;
-                this.plugin.settings.favoriteTemplate =
-                  defaultTemplate.fileName;
-              }
-              await this.deleteAsset(option);
-            }
-          })
-        );
-      } else {
-        if (option.isDefault) continue;
-        setting.addButton((button) =>
-          button
-            .setIcon("install")
-            .onClick(async () => await this.downloadAsset(option, templatePath))
-        );
-      }
+    // Show also templates in the templates folder
+    const templatePath = this.plugin.manifest.dir + TEMPLATE_DIR;
+    const templates = await this.app.vault.adapter.list(templatePath);
+    console.log(templates);
+    // iterate over the templates and show them
+    for (const filePath of templates.files) {
+      const fileName = filePath.split("/").pop();
+      // fileName without extension and capitalized
+      const title = fileName
+        ?.split(".")[0]
+        .replace(/-/g, " ")
+        .replace(/\w\S*/g, (w) => w.replace(/^\w/, (c) => c.toUpperCase()));
+      const setting = new Setting(scrollContainer)
+        .setName(title)
+        .setDesc(fileName);
+
+      this.favoriteButton(setting, fileName);
+      // Delete button and lock for default template
+      this.deleteButton(setting, filePath, fileName);
     }
   }
 
-  private favoriteButton(setting: Setting, option: Option): void {
+  private deleteButton(
+    setting: Setting,
+    filePath: string,
+    fileName: string
+  ): void {
+    // Default file cant be deleted
+    if (fileName === DEFAULT_TEMPLATE) {
+      // Add a lock icon
+      setting.addButton((button) =>
+        button
+          .setIcon("lock")
+          .setTooltip("Default template")
+          .setClass("settings-button")
+          .setClass("settings-folder-button")
+      );
+    } else {
+      setting.addButton((button) =>
+        button
+          .setIcon("trash")
+          .setTooltip("Delete template")
+          .setClass("settings-button")
+          .onClick(async () => {
+            // Check if the template is the favorite template
+            if (this.isDefaultTemplate(fileName))
+              this.plugin.settings.favoriteTemplate = DEFAULT_TEMPLATE;
+            try {
+              await this.app.vault.adapter.remove(filePath);
+              console.log(`Deleted asset: ${filePath}`);
+              this.display();
+            } catch (err) {
+              console.error(`Error deleting asset ${filePath}:`, err);
+            }
+          })
+      );
+    }
+  }
+  private isDefaultTemplate(fileName: string): boolean {
+    return fileName === this.plugin.settings.favoriteTemplate;
+  }
+
+  private favoriteButton(setting: Setting, fileName: string): void {
     setting.addButton((button) =>
       button
-        .setIcon(option.isFavorite ? "star" : "crossed-star")
+        .setIcon(
+          this.plugin.settings.favoriteTemplate === fileName
+            ? "star"
+            : "crossed-star"
+        )
+        .setTooltip("Favorite template")
+        .setClass("settings-button")
         .onClick(() => {
-          console.log(`Favorite button clicked for ${option.name}`);
-          console.log(`Is favorite: ${option.isFavorite}`);
           // if the template is not favorite, make it favorite else do nothing
-          if (option.isFavorite) return;
-          // remove the favorite icon from the previous favorite template
-          const previousFavoriteTemplate = SETTINGS_OPTIONS.find(
-            (option) => option.isFavorite
-          );
-          if (previousFavoriteTemplate) {
-            previousFavoriteTemplate.isFavorite = false;
-          }
-          // make the current template favorite
-          option.isFavorite = true;
-          // save the favorite template in the settings
-          this.plugin.settings.favoriteTemplate = option.fileName;
+          if (this.isDefaultTemplate(fileName)) return;
+          this.plugin.settings.favoriteTemplate = fileName;
           this.plugin.saveSettings();
           // refresh the settings tab
           this.display();
         })
     );
-  }
-
-  private async downloadAsset(option: Option, path: string): Promise<void> {
-    console.log(`Downloading asset from: ${option.downloadUrl}`);
-    await downloadFile(this.app, option.downloadUrl, path);
-    this.display();
-  }
-
-  private async deleteAsset(option: Option): Promise<void> {
-    const templatePath =
-      this.plugin.manifest.dir + TEMPLATE_DIR + option.fileName;
-
-    try {
-      await this.app.vault.adapter.remove(templatePath);
-      console.log(`Deleted asset: ${option.name}`);
-      this.display();
-    } catch (err) {
-      console.error(`Error deleting asset ${option.name}:`, err);
-    }
   }
 }
 

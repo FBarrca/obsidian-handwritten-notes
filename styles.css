@@ -7,11 +7,16 @@
 
 
 .settings-folder-button {
-    padding: 4px 6px;
-    box-shadow: none;
+    box-shadow: none !important;
     float: right;
 }
-
+.settings-button {
+    padding: 6px 8px;
+}
+.settings-scroll-container {
+    max-height: 300px;
+    overflow-y: scroll;
+}
 
 .share-img {
     width: 100%;
