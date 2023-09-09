@@ -275,7 +275,7 @@ export default class NotePDF extends Plugin {
         currentNotePath
       );
 
-      let toolbar = embed.querySelector(".pdf-toolbar");
+      let toolbar = embed.querySelector(".pdf-toolbar-right");
       if (!toolbar) return;
       appendAnnotateButton(toolbar as HTMLElement, async () => {
         await this.openEmbeddedExternal(pdfFile);

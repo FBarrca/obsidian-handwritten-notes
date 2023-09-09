@@ -1,8 +1,10 @@
 
 .pdf-annotate-button {
-    padding: 4px 6px;
-    box-shadow: none;
     float: right;
+    /* padding: 0px 6px;
+    box-shadow: none !important;
+    float: right;
+    color: var(--text-faint); */
 }
 
 

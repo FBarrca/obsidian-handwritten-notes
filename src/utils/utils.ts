@@ -80,7 +80,9 @@ export function appendAnnotateButton(
   // give it a unique id so we can find it later
 
   button.setTooltip("Annotate");
-  button.buttonEl.classList.add("pdf-annotate-button");
+  // button.buttonEl.classList.add("pdf-annotate-button");
+  button.setClass("pdf-annotate-button");
+  button.setClass("clickable-icon");
 
   // Handle the async onClick function
   button.onClick(async () => {
