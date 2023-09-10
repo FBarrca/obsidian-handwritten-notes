@@ -1,5 +1,6 @@
 // Obsidian imports
 import {
+  ButtonComponent,
   MarkdownView,
   Notice,
   Platform,
@@ -266,6 +267,7 @@ export default class NotePDF extends Plugin {
 
   async addAnnotateButtonMarkdown() {
     const pdfEmbeds = document.querySelectorAll(".pdf-embed");
+    console.log(pdfEmbeds);
     for (const [index, embed] of Array.from(pdfEmbeds).entries()) {
       let pdfFile: TFile;
       const pdfLink = embed.getAttribute("src");
@@ -275,10 +277,44 @@ export default class NotePDF extends Plugin {
         currentNotePath
       );
 
-      let toolbar = embed.querySelector(".pdf-toolbar-right");
-      if (!toolbar) return;
-      appendAnnotateButton(toolbar as HTMLElement, async () => {
+      let rightToolbar = embed.querySelector(".pdf-toolbar-right");
+      if (!rightToolbar) return;
+      appendAnnotateButton(rightToolbar as HTMLElement, async () => {
         await this.openEmbeddedExternal(pdfFile);
+      });
+      // COLLAPSE BUTTON
+      const pdfContainer = embed.querySelector(".pdf-container");
+      // const rightToolbar = embed.querySelector(".pdf-toolbar-left");
+      // if (!rightToolbar) return;
+      // Add a button to control a css variable that controls the colapsed flag
+
+      const hasCollapseButton = embed.querySelector(".pdf-collapse-button");
+      if (hasCollapseButton) return;
+      const collapseButton = new ButtonComponent(
+        rightToolbar as HTMLElement
+      ).setIcon("double-down-arrow-glyph");
+      collapseButton.setTooltip("Collapse document");
+      collapseButton.setClass("pdf-collapse-button");
+      collapseButton.setClass("clickable-icon");
+      collapseButton.onClick(async () => {
+        const isCollapsed = embed.classList.contains("pdf-embed-collapsed");
+
+        // Toggle the class
+        embed.classList.toggle("pdf-embed-collapsed");
+        pdfContainer.classList.toggle("pdf-embed-collapsed");
+
+        // Update the icon and tooltip based on the toggled state
+        if (isCollapsed) {
+          collapseButton.setIcon("double-up-arrow-glyph");
+          collapseButton.setTooltip("Collapse document");
+          embed.toggleClass("pdf-embed-collapsed", false);
+          pdfContainer.toggleClass("pdf-embed-collapsed", false);
+        } else {
+          collapseButton.setIcon("double-down-arrow-glyph"); // Assuming you have an icon named double-up-arrow-glyph for the expanded state
+          collapseButton.setTooltip("Expand document");
+          embed.toggleClass("pdf-embed-collapsed", true);
+          pdfContainer.toggleClass("pdf-embed-collapsed", true);
+        }
       });
     }
   }
