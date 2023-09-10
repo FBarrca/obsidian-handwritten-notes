@@ -243,24 +243,21 @@ export default class NotePDF extends Plugin {
 
   // Annotation button methods
   async addAnnotateButton() {
-    // get any views of type markdown
-
-    const activeView = this.app.workspace.getActiveViewOfType(View);
-    if (!activeView) return;
-    if (activeView.getViewType() === "pdf") {
-      await this.addAnnotateButtonPDF();
-    } else if (activeView.getViewType() === "markdown") {
-      this.addAnnotateButtonMarkdown();
+    // All the views of type markdown
+    const markdownViews = this.app.workspace.getLeavesOfType("markdown");
+    for (const view of markdownViews) {
+      await this.addAnnotateButtonMarkdown(view.view as MarkdownView);
+    }
+    // pdf views
+    const pdfViews = this.app.workspace.getLeavesOfType("pdf");
+    for (const view of pdfViews) {
+      await this.addAnnotateButtonPDF(view.view as View);
     }
   }
 
-  async addAnnotateButtonPDF() {
+  async addAnnotateButtonPDF(view: View) {
     // get the
-    const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (!markdownView) return;
-    // get the html that can be edited
-    const markdownContainer = markdownView.containerEl;
-    const toolbars = markdownContainer.getElementsByClassName("pdf-toolbar");
+    const toolbars = view.containerEl.getElementsByClassName("pdf-toolbar");
     for (let i = 0; i < toolbars.length; i++) {
       appendAnnotateButton(toolbars[i] as HTMLElement, () =>
         //@ts-ignore
@@ -269,12 +266,7 @@ export default class NotePDF extends Plugin {
     }
   }
 
-  async addAnnotateButtonMarkdown() {
-    // get the document html
-    const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-
-    if (!markdownView) return;
-    markdownView.editor.refresh();
+  async addAnnotateButtonMarkdown(markdownView: View) {
     // get the html that can be edited
     const markdownContainer = markdownView.containerEl;
 
