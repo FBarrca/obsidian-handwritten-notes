@@ -14,6 +14,14 @@
     color: var(--text-faint); */
 }
 
+.pdf-name {
+    text-decoration: underline;
+    display: inline-block; /* or block, depending on your requirements */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 50px;
+}
 
 .settings-folder-button {
     box-shadow: none !important;

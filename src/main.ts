@@ -289,9 +289,6 @@ export default class NotePDF extends Plugin {
 
       // COLLAPSE BUTTON
       const pdfContainer = embed.querySelector(".pdf-container");
-      // const rightToolbar = embed.querySelector(".pdf-toolbar-left");
-      // if (!rightToolbar) return;
-      // Add a button to control a css variable that controls the colapsed flag
 
       const hasCollapseButton = embed.querySelector(".pdf-collapse-button");
       if (hasCollapseButton) continue;
@@ -323,8 +320,24 @@ export default class NotePDF extends Plugin {
           pdfContainer.toggleClass("pdf-embed-collapsed", true);
         }
       });
+      // ADD NAME to the view
+      // name is the last part of the path without the extension
+      const pdfName = pdfLink.split("/").pop()?.split(".")[0];
+      const pdfNameButton = new ButtonComponent(rightToolbar as HTMLElement);
+      pdfNameButton.buttonEl.addClasses([
+        "pdf-page-numbers",
+        "pdf-name",
+        "clickable-icon",
+      ]);
+      pdfNameButton.setButtonText(pdfName);
+      pdfNameButton.setTooltip("Open link");
+      const leftToolbar = embed.querySelector(".pdf-toolbar");
+      if (!leftToolbar) continue;
+      leftToolbar.insertBefore(pdfNameButton.buttonEl, rightToolbar);
+      pdfNameButton.onClick(async () => {
+        openCreatedFile(this.app, pdfLink);
+      });
     }
-    // refresh the view .rebuildView()
   }
 
   collapseEmbed(
