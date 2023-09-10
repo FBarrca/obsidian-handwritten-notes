@@ -6,6 +6,13 @@
     float: right;
     color: var(--text-faint); */
 }
+.pdf-collapse-button {
+    float: left;
+    /* padding: 0px 6px;
+    box-shadow: none !important;
+    float: right;
+    color: var(--text-faint); */
+}
 
 
 .settings-folder-button {
@@ -27,4 +34,8 @@
     display: block;
     margin-left: auto;
     margin-right: auto;
+}
+
+.pdf-embed-collapsed {
+    max-height: 100px
 }
