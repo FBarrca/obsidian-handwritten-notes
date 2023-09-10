@@ -7,6 +7,7 @@ import {
   Plugin,
   TFile,
   TFolder,
+  View,
   normalizePath,
 } from "obsidian";
 
@@ -242,7 +243,9 @@ export default class NotePDF extends Plugin {
 
   // Annotation button methods
   async addAnnotateButton() {
-    const activeView = this.app.workspace.activeLeaf.view;
+    // get any views of type markdown
+
+    const activeView = this.app.workspace.getActiveViewOfType(View);
     if (!activeView) return;
     if (activeView.getViewType() === "pdf") {
       await this.addAnnotateButtonPDF();
@@ -252,7 +255,12 @@ export default class NotePDF extends Plugin {
   }
 
   async addAnnotateButtonPDF() {
-    const toolbars = document.getElementsByClassName("pdf-toolbar");
+    // get the
+    const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (!markdownView) return;
+    // get the html that can be edited
+    const markdownContainer = markdownView.containerEl;
+    const toolbars = markdownContainer.getElementsByClassName("pdf-toolbar");
     for (let i = 0; i < toolbars.length; i++) {
       appendAnnotateButton(toolbars[i] as HTMLElement, () =>
         //@ts-ignore
@@ -262,8 +270,18 @@ export default class NotePDF extends Plugin {
   }
 
   async addAnnotateButtonMarkdown() {
-    const pdfEmbeds = document.querySelectorAll(".pdf-embed");
-    for (const [index, embed] of Array.from(pdfEmbeds).entries()) {
+    // get the document html
+    const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+
+    if (!markdownView) return;
+    markdownView.editor.refresh();
+    // get the html that can be edited
+    const markdownContainer = markdownView.containerEl;
+
+    const pdfEmbeds = markdownContainer.querySelectorAll(".pdf-embed");
+    // Convert the NodeList to an array
+
+    for (const embed of Array.from(pdfEmbeds)) {
       let pdfFile: TFile;
       const pdfLink = embed.getAttribute("src");
       const currentNotePath = this.app.workspace.getActiveFile().path;
@@ -271,12 +289,12 @@ export default class NotePDF extends Plugin {
         pdfLink,
         currentNotePath
       );
-
       let rightToolbar = embed.querySelector(".pdf-toolbar-right");
-      if (!rightToolbar) return;
+      if (!rightToolbar) continue;
       appendAnnotateButton(rightToolbar as HTMLElement, async () => {
         await this.openEmbeddedExternal(pdfFile);
       });
+
       // COLLAPSE BUTTON
       const pdfContainer = embed.querySelector(".pdf-container");
       // const rightToolbar = embed.querySelector(".pdf-toolbar-left");
@@ -284,13 +302,15 @@ export default class NotePDF extends Plugin {
       // Add a button to control a css variable that controls the colapsed flag
 
       const hasCollapseButton = embed.querySelector(".pdf-collapse-button");
-      if (hasCollapseButton) return;
-      const collapseButton = new ButtonComponent(
-        rightToolbar as HTMLElement
-      ).setIcon("double-down-arrow-glyph");
-      collapseButton.setTooltip("Collapse document");
+      if (hasCollapseButton) continue;
+
+      const collapseButton = new ButtonComponent(rightToolbar as HTMLElement);
       collapseButton.setClass("pdf-collapse-button");
       collapseButton.setClass("clickable-icon");
+      this.settings.collapseEmbeds
+        ? this.expandEmbed(embed, pdfContainer, collapseButton)
+        : this.collapseEmbed(embed, pdfContainer, collapseButton);
+
       collapseButton.onClick(async () => {
         const isCollapsed = embed.classList.contains("pdf-embed-collapsed");
 
@@ -312,6 +332,29 @@ export default class NotePDF extends Plugin {
         }
       });
     }
+    // refresh the view .rebuildView()
+  }
+
+  collapseEmbed(
+    embed: Element,
+    pdfContainer: Element,
+    collapseButton: ButtonComponent
+  ) {
+    collapseButton.setIcon("double-up-arrow-glyph");
+    collapseButton.setTooltip("Collapse document");
+    embed.toggleClass("pdf-embed-collapsed", false);
+    pdfContainer.toggleClass("pdf-embed-collapsed", false);
+  }
+
+  expandEmbed(
+    embed: Element,
+    pdfContainer: Element,
+    collapseButton: ButtonComponent
+  ) {
+    collapseButton.setIcon("double-down-arrow-glyph"); // Assuming you have an icon named double-up-arrow-glyph for the expanded state
+    collapseButton.setTooltip("Expand document");
+    embed.toggleClass("pdf-embed-collapsed", true);
+    pdfContainer.toggleClass("pdf-embed-collapsed", true);
   }
 
   // Miscellaneous methods

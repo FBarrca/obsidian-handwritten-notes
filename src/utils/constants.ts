@@ -11,5 +11,6 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   assetUrl: "",
   useRelativePaths: false,
   showWelcomeModal: true,
+  collapseEmbeds: false,
   favoriteTemplate: DEFAULT_TEMPLATE,
 };

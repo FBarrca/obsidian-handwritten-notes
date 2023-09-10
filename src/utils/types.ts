@@ -12,6 +12,7 @@ export interface PluginSettings {
   assetUrl: string;
   useRelativePaths: boolean;
   showWelcomeModal: boolean;
+  collapseEmbeds: boolean;
   favoriteTemplate: string;
 }
 

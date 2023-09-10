@@ -5,6 +5,7 @@ import {
   PluginSettingTab,
   ButtonComponent,
   Platform,
+  MarkdownRenderer,
 } from "obsidian";
 
 import {
@@ -27,10 +28,15 @@ export class NotePDFSettingsTab extends PluginSettingTab {
   }
 
   display(): void {
-    const { containerEl } = this;
-    containerEl.empty();
+    const { containerEl: modal } = this;
+    modal.empty();
     // GENERAL SETTINGS
-    this.containerEl.createEl("h2", {
+    modal.createEl("h2", {
+      text: "General Settings",
+    });
+    this.CollapseEmbedsToggle();
+    // Generate new note
+    modal.createEl("h2", {
       text: "Create new note",
     });
     this.createRelativePathToggle();
@@ -41,6 +47,19 @@ export class NotePDFSettingsTab extends PluginSettingTab {
     this.createSettingWithOptions();
   }
 
+  private CollapseEmbedsToggle(): void {
+    new Setting(this.containerEl)
+      .setName("Collapse embeds")
+      .setDesc("Collapse embeds by default to save vertical space.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.collapseEmbeds)
+          .onChange(async (value) => {
+            this.plugin.settings.collapseEmbeds = value;
+            await this.plugin.saveSettings();
+          })
+      );
+  }
   private createRelativePathToggle(): void {
     new Setting(this.containerEl)
       .setName("Use relative path")
@@ -48,7 +67,10 @@ export class NotePDFSettingsTab extends PluginSettingTab {
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.useRelativePaths)
-          .onChange((value) => (this.plugin.settings.useRelativePaths = value))
+          .onChange(async (value) => {
+            this.plugin.settings.useRelativePaths = value;
+            await this.plugin.saveSettings();
+          })
       );
   }
 
@@ -73,9 +95,16 @@ export class NotePDFSettingsTab extends PluginSettingTab {
     if (Platform.isDesktop) {
       this.createFolderButton(titleEl);
     }
-
+    MarkdownRenderer.render(
+      this.app,
+      `You can use **any** PDF as a template for the notes. Just add it to the templates folder and it will appear here. 
+      \`${this.plugin.manifest.dir + TEMPLATE_DIR}\``,
+      this.containerEl,
+      "",
+      this.plugin
+    );
     this.containerEl.createEl("p", {
-      text: "You can use any PDF as a template for the notes. Here are some examples:",
+      text: "",
     });
   }
 
@@ -110,7 +139,6 @@ export class NotePDFSettingsTab extends PluginSettingTab {
     // Show also templates in the templates folder
     const templatePath = this.plugin.manifest.dir + TEMPLATE_DIR;
     const templates = await this.app.vault.adapter.list(templatePath);
-    console.log(templates);
     // iterate over the templates and show them
     for (const filePath of templates.files) {
       const fileName = filePath.split("/").pop();
