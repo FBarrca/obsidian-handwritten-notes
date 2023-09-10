@@ -43,7 +43,6 @@ export default class NotePDF extends Plugin {
 
     this.addRibbonIcon("pencil", "Create empty handwritten note", async () => {
       const path = await this.createPDFwithModal();
-      console.log(path);
       openCreatedFile(this.app, path);
     });
 
@@ -52,7 +51,6 @@ export default class NotePDF extends Plugin {
       name: "Modal: Create and open an empty handwritten note",
       editorCallback: async () => {
         const filePath = await this.createPDFwithModal();
-        console.log(filePath);
         openCreatedFile(this.app, filePath);
       },
     });
@@ -61,7 +59,6 @@ export default class NotePDF extends Plugin {
       name: "Modal: Create and embed an empty handwritten note",
       editorCallback: async () => {
         const filePath = await this.createPDFwithModal();
-        console.log(filePath);
         const editor =
           this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
         if (editor) {
@@ -120,7 +117,6 @@ export default class NotePDF extends Plugin {
         // openCreatedFile(this.app, filePath);
         // get TFile from path
         const pdfFile = await this.app.vault.getAbstractFileByPath(filePath);
-        console.log(pdfFile);
         if (!pdfFile) return;
         await this.openEmbeddedExternal(pdfFile as TFile);
       },
@@ -267,7 +263,6 @@ export default class NotePDF extends Plugin {
 
   async addAnnotateButtonMarkdown() {
     const pdfEmbeds = document.querySelectorAll(".pdf-embed");
-    console.log(pdfEmbeds);
     for (const [index, embed] of Array.from(pdfEmbeds).entries()) {
       let pdfFile: TFile;
       const pdfLink = embed.getAttribute("src");
