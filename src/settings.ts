@@ -41,7 +41,7 @@ export class NotePDFSettingsTab extends PluginSettingTab {
     });
     this.createRelativePathToggle();
     this.createDefaultPathTextInput();
-
+    // Settings heading
     // TEMPLATES
     this.createTemplatesSection();
     this.createSettingWithOptions();
@@ -90,7 +90,11 @@ export class NotePDFSettingsTab extends PluginSettingTab {
   }
 
   private createTemplatesSection(): void {
-    const titleEl = this.containerEl.createEl("h2", { text: "Templates" });
+    // add a div
+    const titleEl = this.containerEl.createDiv();
+    titleEl.innerText = "Templates";
+    titleEl.addClass("setting-item-heading");
+    titleEl.addClass("setting-item");
 
     if (Platform.isDesktop) {
       this.createFolderButton(titleEl);
@@ -103,30 +107,31 @@ export class NotePDFSettingsTab extends PluginSettingTab {
       "",
       this.plugin
     );
-    this.containerEl.createEl("p", {
-      text: "",
-    });
   }
 
   private createFolderButton(parentEl: HTMLElement): void {
-    const folderButton = new ButtonComponent(parentEl)
+    // div for the buttons
+    const buttonContainer = parentEl.createDiv();
+    buttonContainer.addClass("setting-item-control");
+    // Reload button
+    const reloadButton = new ButtonComponent(buttonContainer)
+      .setIcon("sync")
+      .setClass("clickable-icon")
+      .setClass("setting-editor-extra-setting-button")
+      .setTooltip("Reload templates");
+    reloadButton.onClick(() => {
+      this.display();
+    });
+    const folderButton = new ButtonComponent(buttonContainer)
       .setIcon("folder")
-      .setClass("settings-button")
-      .setClass("settings-folder-button")
+      .setClass("clickable-icon")
+      // .setClass("settings-folder-button")
+      .setClass("setting-editor-extra-setting-button")
       .setTooltip("Open templates folder in the explorer");
     folderButton.onClick(() => {
       (this.app as AppWithDesktopInternalApi).showInFolder(
         this.plugin.manifest.dir + TEMPLATE_DIR + DEFAULT_TEMPLATE
       );
-    });
-    // Reload button
-    const reloadButton = new ButtonComponent(parentEl)
-      .setIcon("sync")
-      .setClass("settings-button")
-      .setClass("settings-folder-button")
-      .setTooltip("Reload templates");
-    reloadButton.onClick(() => {
-      this.display();
     });
   }
 

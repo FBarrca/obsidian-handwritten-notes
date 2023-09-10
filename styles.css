@@ -23,10 +23,6 @@
     min-width: 50px;
 }
 
-.settings-folder-button {
-    box-shadow: none !important;
-    float: right;
-}
 .settings-button {
     padding: 6px 8px;
 }
