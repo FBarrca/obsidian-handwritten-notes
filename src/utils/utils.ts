@@ -151,18 +151,16 @@ export async function downloadFile(
  * @return {boolean} True if the file exists, false otherwise.
  *
  * @throws It will throw an error if the file exists
- * @brief The getAbstractFileByPath doesnt work for files that are not in the vault(eg. files in the plugin folder)
- * therefore this function is used to check if a file exists in the vault, i should probably use a better way to do this
+ * @brief Use vault.adapter.exists to determine if the file exists. This works for all files, whether in or out of the vault.
  */
 export async function fileExists(app: App, path: string): Promise<boolean> {
   console.log("Checking if file exists: " + path);
   try {
-    await app.vault.adapter.read(path);
-    console.log("File exists");
-    return true;
+    const exists = await app.vault.adapter.exists(path);
+    console.log("File exists: " + exists);
+    return exists;
   } catch (err) {
-    // console.log(err);
-    console.log("File doesn't exist");
+    console.error("Error checking file existance");
     return false;
   }
 }
