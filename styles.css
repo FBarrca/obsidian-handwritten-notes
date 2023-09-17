@@ -41,5 +41,14 @@
 }
 
 .pdf-embed-collapsed {
-    max-height: 41px
+    height: auto !important;
+    min-height: min-content;
+}
+.pdf-container-collapsed {
+    display:none !important;
+}
+.pdf-toolbar-left-collapsed {
+    /* visibility: hidden !important;
+    position: absolute !important;
+    height: 41px; */
 }

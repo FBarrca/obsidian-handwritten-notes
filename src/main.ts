@@ -127,7 +127,7 @@ export default class NotePDF extends Plugin {
       this.addAnnotateButton();
       initTemplatesFolder(this);
       this.registerInterval(
-        window.setInterval(this.addAnnotateButton.bind(this), 1000)
+        window.setInterval(this.addAnnotateButton.bind(this), 100)
       );
     });
     // Show welcome modal
@@ -288,6 +288,8 @@ export default class NotePDF extends Plugin {
       });
 
       // COLLAPSE BUTTON
+      const leftToolbar = embed.querySelector(".pdf-toolbar-left");
+      if (!leftToolbar) continue;
       const pdfContainer = embed.querySelector(".pdf-container");
 
       const hasCollapseButton = embed.querySelector(".pdf-collapse-button");
@@ -297,27 +299,29 @@ export default class NotePDF extends Plugin {
       collapseButton.setClass("pdf-collapse-button");
       collapseButton.setClass("clickable-icon");
       this.settings.collapseEmbeds
-        ? this.expandEmbed(embed, pdfContainer, collapseButton)
-        : this.collapseEmbed(embed, pdfContainer, collapseButton);
+        ? this.expandEmbed(embed, pdfContainer, leftToolbar, collapseButton)
+        : this.collapseEmbed(embed, pdfContainer, leftToolbar, collapseButton);
 
       collapseButton.onClick(async () => {
         const isCollapsed = embed.classList.contains("pdf-embed-collapsed");
 
         // Toggle the class
         embed.classList.toggle("pdf-embed-collapsed");
-        pdfContainer.classList.toggle("pdf-embed-collapsed");
+        pdfContainer.classList.toggle("pdf-container-collapsed");
 
         // Update the icon and tooltip based on the toggled state
         if (isCollapsed) {
           collapseButton.setIcon("double-up-arrow-glyph");
           collapseButton.setTooltip("Collapse document");
           embed.toggleClass("pdf-embed-collapsed", false);
-          pdfContainer.toggleClass("pdf-embed-collapsed", false);
+          pdfContainer.toggleClass("pdf-container-collapsed", false);
+          leftToolbar.toggleClass("pdf-toolbar-left-collapsed", false);
         } else {
           collapseButton.setIcon("double-down-arrow-glyph"); // Assuming you have an icon named double-up-arrow-glyph for the expanded state
           collapseButton.setTooltip("Expand document");
           embed.toggleClass("pdf-embed-collapsed", true);
-          pdfContainer.toggleClass("pdf-embed-collapsed", true);
+          pdfContainer.toggleClass("pdf-container-collapsed", true);
+          leftToolbar.toggleClass("pdf-toolbar-left-collapsed", true);
         }
       });
       // ADD NAME to the view
@@ -329,11 +333,10 @@ export default class NotePDF extends Plugin {
         "pdf-name",
         "clickable-icon",
       ]);
+      const toolbar = embed.querySelector(".pdf-toolbar");
       pdfNameButton.setButtonText(pdfName);
       pdfNameButton.setTooltip("Open link");
-      const leftToolbar = embed.querySelector(".pdf-toolbar");
-      if (!leftToolbar) continue;
-      leftToolbar.insertBefore(pdfNameButton.buttonEl, rightToolbar);
+      toolbar.insertBefore(pdfNameButton.buttonEl, rightToolbar);
       pdfNameButton.onClick(async () => {
         openCreatedFile(this.app, pdfLink);
       });
@@ -343,23 +346,27 @@ export default class NotePDF extends Plugin {
   collapseEmbed(
     embed: Element,
     pdfContainer: Element,
+    leftToolbar: Element,
     collapseButton: ButtonComponent
   ) {
     collapseButton.setIcon("double-up-arrow-glyph");
     collapseButton.setTooltip("Collapse document");
     embed.toggleClass("pdf-embed-collapsed", false);
-    pdfContainer.toggleClass("pdf-embed-collapsed", false);
+    pdfContainer.toggleClass("pdf-container-collapsed", false);
+    leftToolbar.toggleClass("pdf-toolbar-left-collapsed", false);
   }
 
   expandEmbed(
     embed: Element,
     pdfContainer: Element,
+    leftToolbar: Element,
     collapseButton: ButtonComponent
   ) {
     collapseButton.setIcon("double-down-arrow-glyph"); // Assuming you have an icon named double-up-arrow-glyph for the expanded state
     collapseButton.setTooltip("Expand document");
     embed.toggleClass("pdf-embed-collapsed", true);
-    pdfContainer.toggleClass("pdf-embed-collapsed", true);
+    pdfContainer.toggleClass("pdf-container-collapsed", true);
+    leftToolbar.toggleClass("pdf-toolbar-left-collapsed", true);
   }
 
   // Miscellaneous methods
