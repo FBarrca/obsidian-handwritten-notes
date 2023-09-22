@@ -6,6 +6,9 @@ Designed to seamlessly incorporate stylus notes into your workflow, this plugin 
 
 > The plugins backbone are **PDF files**, which are used to store the notes. This allows for a very fast and responsive experience, and allows for easy sharing of notes with other people and makes it more future proof, as PDF is a very well established format.
 
+> [!NOTE]
+> Please, if you own an iOS, macOS or Linux device, open an issue sharing your experience by opening an issue. I want to highlight the best editors for those platform in the README, but I don't own said devices.
+
 ## 🎥 Demo
 
 This is a demo of the plugin, showing how to create a new note, and how to annotate an existing note. It is a bit outdated, but the basic functionality is still the same.
@@ -63,6 +66,7 @@ You can use **any editor** you like that has support for annotating PDF files.
 Here are some examples:
 
 - [Xodo](https://www.xodo.com/app/)
+- [PDFannotator](https://www.pdfannotator.com/en/)
 - [Drawboard PDF](https://www.drawboard.com/pdf/)
 - [Adobe Acrobat Reader](https://acrobat.adobe.com/us/en/acrobat/pdf-reader.html)
 
