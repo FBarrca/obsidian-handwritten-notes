@@ -80,12 +80,20 @@ These are the editors I have tested: (If you have tested other editors, please P
 - Microsoft's PDF editor
 - PenandPdf (open-source, though abandoned)
 
-### iOS
+### iOS (Community curated)
 
 - Native Markup - This is one I use, it's pretty basic but all I need without bells & whistles
    - ⚠️ To save the file, you need to tap Done > Delete PDF. It doesn't delete the original PDF and instead saves the drawings into the original PDF. I have no idea why Apple designed it like this. Perhaps it may be an unexpected usage for them.
 - PDF Editor - Also great, but again, subscription is needed although for different options that PDF Expert. (So you can use both of them, for achieving best results, but friction of using 3 apps is annoying).
 - Notes Writer - Overall probably the best of those three, free (you can purchase Pro version super cheap). Only thing it's lacking and it was deal breaker for me is auto shapes (triangles, circles etc.).
+
+### Linux (Community curated)
+-  Xournal++ - What I use. Probably the most known out there, works decently well, fast and responsive as long as you don't include photos / screenshot of coloured images in +100 pages long documents (I have lots of a pictures of non-cleaned old whiteboard for class in my pfds and it can take a while to save/export). But other than that it is still the most stable / best compromise i've really tried to this day.
+It is cross platform (I have a surface on windows so, i mainly tested apps that were also usable on windows).
+
+- Saber - Looks promising, ui looks really nice, it has free cloud host storage, its available on ios, android, linux and windows i didn't test it that that much but I will definitely try out later. The only catch is that i didn't find how to insert something other than image (e.g. pdfs)
+
+-  Scrivano - Would've been the best if not for the lack of file tree view / remember last opened file.
 
 ## 🛠️ How to compile the plugin
 
