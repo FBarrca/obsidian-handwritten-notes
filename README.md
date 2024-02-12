@@ -83,6 +83,7 @@ These are the editors I have tested: (If you have tested other editors, please P
 ### iOS
 
 - Native Markup - This is one I use, it's pretty basic but all I need without bells & whistles
+   - ⚠️ To save the file, you need to tap Done > Delete PDF. It doesn't delete the original PDF and instead saves the drawings into the original PDF. I have no idea why Apple designed it like this. Perhaps it may be an unexpected usage for them.
 - PDF Editor - Also great, but again, subscription is needed although for different options that PDF Expert. (So you can use both of them, for achieving best results, but friction of using 3 apps is annoying).
 - Notes Writer - Overall probably the best of those three, free (you can purchase Pro version super cheap). Only thing it's lacking and it was deal breaker for me is auto shapes (triangles, circles etc.).
 
