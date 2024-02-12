@@ -88,7 +88,9 @@ These are the editors I have tested: (If you have tested other editors, please P
    - ⚠️ To save the file, you need to tap Done > Delete PDF. It doesn't delete the original PDF and instead saves the drawings into the original PDF. I have no idea why Apple designed it like this. Perhaps it may be an unexpected usage for them.
 - PDF Editor - Also great, but again, subscription is needed although for different options that PDF Expert. (So you can use both of them, for achieving best results, but friction of using 3 apps is annoying).
 - Notes Writer - Overall probably the best of those three, free (you can purchase Pro version super cheap). Only thing it's lacking and it was deal breaker for me is auto shapes (triangles, circles etc.).
-
+  - In order to modify the original document, we need to tap the Notes Writer Pro icon <img src="https://github.com/FBarrca/obsidian-handwritten-notes/assets/72342591/ae28fcbb-d698-40d3-b162-a3b9d73a9040" width=100>
+   at the top of the Share menu.
+      <img src="https://github.com/FBarrca/obsidian-handwritten-notes/assets/72342591/1c3c2248-c7b0-4107-a7e9-9e242ba890e3" width=400>
 ### Linux (Community curated)
 -  Xournal++ - What I use. Probably the most known out there, works decently well, fast and responsive as long as you don't include photos / screenshot of coloured images in +100 pages long documents (I have lots of a pictures of non-cleaned old whiteboard for class in my pfds and it can take a while to save/export). But other than that it is still the most stable / best compromise i've really tried to this day.
 It is cross platform (I have a surface on windows so, i mainly tested apps that were also usable on windows).
