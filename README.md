@@ -1,4 +1,6 @@
 # Obsidian Handwritten Notes Plugin
+> [!WARNING]
+>  **Note for mobile users** Mobile support is limited, please refer to the compatible apps list in the README as the app must support to edit **the file itself** and not just import it
 
 Designed to seamlessly incorporate stylus notes into your workflow, this plugin allows you to store and edit handwritten notes files right in your vault. Future implementations will enable embedding drawings in documents and creating interlinks between documents or drawings.
 
