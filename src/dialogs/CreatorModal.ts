@@ -1,6 +1,6 @@
 import { App, Modal, Setting, normalizePath } from "obsidian";
 import { newNote } from "../utils/types";
-import { TEMPLATE_DIR } from "src/utils/constants";
+import { DEFAULT_TEMPLATE_DIR } from "src/utils/constants";
 
 export class PDFCreatorModal extends Modal {
   result: newNote = {
@@ -44,7 +44,9 @@ export class PDFCreatorModal extends Modal {
     new Setting(contentEl).setName("Template").addDropdown(async (dropDown) => {
       // read all files in the template folder
       // add them to the dropdown menu
-      const templateFolder = normalizePath(this.manifest.dir + TEMPLATE_DIR);
+      const templateFolder = normalizePath(
+        this.manifest.dir + DEFAULT_TEMPLATE_DIR
+      );
       for (const filePath of (await this.app.vault.adapter.list(templateFolder))
         .files) {
         const fileName = filePath.split("/").pop();

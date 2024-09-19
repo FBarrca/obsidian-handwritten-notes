@@ -14,7 +14,7 @@ import {
 // Local imports
 import { PDFCreatorModal } from "./dialogs/CreatorModal";
 import { NotePDFSettingsTab } from "./settings";
-import { DEFAULT_SETTINGS, TEMPLATE_DIR } from "./utils/constants";
+import { DEFAULT_SETTINGS, DEFAULT_TEMPLATE_DIR } from "./utils/constants";
 import {
   FileExistsError,
   PluginSettings,
@@ -200,7 +200,7 @@ export default class NotePDF extends Plugin {
     }
 
     const templatePath = normalizePath(
-      `${this.manifest.dir}/${TEMPLATE_DIR}/${templateName}`
+      `${this.manifest.dir}/${DEFAULT_TEMPLATE_DIR}/${templateName}`
     );
     if (!(await fileExists(this.app, templatePath))) {
       throw new TemplateNotFoundError("Template file not found!");

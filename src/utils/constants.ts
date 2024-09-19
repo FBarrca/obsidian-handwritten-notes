@@ -1,6 +1,6 @@
 import { PluginSettings } from "./types";
 
-export const TEMPLATE_DIR = "/templates/";
+export const DEFAULT_TEMPLATE_DIR = "/templates/";
 
 export const DEFAULT_TEMPLATE = "blank.pdf";
 

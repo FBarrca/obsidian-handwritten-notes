@@ -7,7 +7,7 @@ import {
   requestUrl,
   ButtonComponent,
 } from "obsidian";
-import { TEMPLATE_DIR } from "./constants";
+import { DEFAULT_TEMPLATE_DIR } from "./constants";
 
 /**
  * Loads the PDF template from the specified path.
@@ -101,7 +101,9 @@ export function appendAnnotateButton(
  * @throws Will throw an error if there's an issue in creating the folder.
  */
 export async function initTemplatesFolder(plugin: Plugin): Promise<void> {
-  const templatesFolder = normalizePath(plugin.manifest.dir + TEMPLATE_DIR);
+  const templatesFolder = normalizePath(
+    plugin.manifest.dir + DEFAULT_TEMPLATE_DIR
+  );
 
   try {
     await plugin.app.vault.createFolder(templatesFolder);

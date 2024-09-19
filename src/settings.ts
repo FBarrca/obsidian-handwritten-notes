@@ -11,7 +11,7 @@ import {
 import {
   DEFAULT_ASSET_PATH,
   DEFAULT_TEMPLATE,
-  TEMPLATE_DIR,
+  DEFAULT_TEMPLATE_DIR,
 } from "./utils/constants";
 import { PluginSettings } from "./utils/types";
 // Local imports
@@ -81,9 +81,9 @@ export class NotePDFSettingsTab extends PluginSettingTab {
       .addText((text) =>
         text
           .setPlaceholder(DEFAULT_ASSET_PATH)
-          .setValue(this.plugin.settings.templatePath)
+          .setValue(this.plugin.settings.defaultPath)
           .onChange(async (value) => {
-            this.plugin.settings.templatePath = value;
+            this.plugin.settings.defaultPath = value;
             await this.plugin.saveSettings();
           })
       );
@@ -102,7 +102,7 @@ export class NotePDFSettingsTab extends PluginSettingTab {
     MarkdownRenderer.render(
       this.app,
       `You can use **any** PDF as a template for the notes. Just add it to the templates folder and it will appear here. 
-      \`${this.plugin.manifest.dir + TEMPLATE_DIR}\``,
+      \`${this.plugin.manifest.dir + DEFAULT_TEMPLATE_DIR}\``,
       this.containerEl,
       "",
       this.plugin
@@ -130,7 +130,7 @@ export class NotePDFSettingsTab extends PluginSettingTab {
       .setTooltip("Open templates folder in the explorer");
     folderButton.onClick(() => {
       (this.app as AppWithDesktopInternalApi).showInFolder(
-        this.plugin.manifest.dir + TEMPLATE_DIR + DEFAULT_TEMPLATE
+        this.plugin.manifest.dir + DEFAULT_TEMPLATE_DIR + DEFAULT_TEMPLATE
       );
     });
   }
@@ -142,7 +142,7 @@ export class NotePDFSettingsTab extends PluginSettingTab {
     scrollContainer.addClass("settings-scroll-container");
 
     // Show also templates in the templates folder
-    const templatePath = this.plugin.manifest.dir + TEMPLATE_DIR;
+    const templatePath = this.plugin.manifest.dir + DEFAULT_TEMPLATE_DIR;
     const templates = await this.app.vault.adapter.list(templatePath);
     // iterate over the templates and show them
     for (const filePath of templates.files) {
