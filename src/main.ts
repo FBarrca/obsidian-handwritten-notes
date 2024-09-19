@@ -228,7 +228,7 @@ export default class NotePDF extends Plugin {
       return parentPath;
       // Using a template folder
     } else {
-      const templateFolderPath = normalizePath(this.settings.templatePath);
+      const templateFolderPath = normalizePath(this.settings.defaultPath);
       // Check if the template folder exists
       if (app.vault.getAbstractFileByPath(templateFolderPath)) {
         return templateFolderPath;

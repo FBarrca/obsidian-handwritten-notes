@@ -8,7 +8,7 @@ export interface newNote {
 }
 
 export interface PluginSettings {
-  templatePath: string;
+  defaultPath: string;
   assetUrl: string;
   useRelativePaths: boolean;
   showWelcomeModal: boolean;
