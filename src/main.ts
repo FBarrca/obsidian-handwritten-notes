@@ -14,7 +14,7 @@ import {
 // Local imports
 import { PDFCreatorModal } from "./dialogs/CreatorModal";
 import { NotePDFSettingsTab } from "./settings";
-import { DEFAULT_SETTINGS, DEFAULT_TEMPLATE_DIR } from "./utils/constants";
+import { DEFAULT_SETTINGS } from "./utils/constants";
 import {
   FileExistsError,
   PluginSettings,
@@ -27,6 +27,7 @@ import {
   appendAnnotateButton,
   initTemplatesFolder,
   fileExists,
+  getTemplatesFolder,
 } from "./utils/utils";
 import {
   AppWithDesktopInternalApi,
@@ -71,7 +72,7 @@ export default class NotePDF extends Plugin {
       id: "quick-create-embed",
       name: "Create and embed from favorite template",
       editorCallback: async () => {
-        const destFolder = this.getDestFolder();
+        const destFolder = await this.getDestFolder();
         // Parent file + note + timestamp in date format with time
         const fileName = `${
           this.app.workspace.getActiveFile()?.basename
@@ -96,7 +97,7 @@ export default class NotePDF extends Plugin {
       id: "quick-create-embed-open",
       name: "Create and embed and open from favorite template",
       editorCallback: async () => {
-        const destFolder = this.getDestFolder();
+        const destFolder = await this.getDestFolder();
         // Parent file + note + timestamp in date format with time
         const fileName = `${
           this.app.workspace.getActiveFile()?.basename
@@ -150,15 +151,16 @@ export default class NotePDF extends Plugin {
   // PDF creation methods
   async createPDFwithModal(): Promise<string> {
     const { app } = this;
-
+    const templatesFolder = await getTemplatesFolder(this);
     return new Promise<string>((resolve, reject) => {
       new PDFCreatorModal(
         app,
         this.manifest,
         this.settings.favoriteTemplate,
+        templatesFolder,
         async (result) => {
           try {
-            let destFolder = this.getDestFolder();
+            let destFolder = await this.getDestFolder();
 
             if (destFolder) {
               const { template, name } = result;
@@ -200,7 +202,7 @@ export default class NotePDF extends Plugin {
     }
 
     const templatePath = normalizePath(
-      `${this.manifest.dir}/${DEFAULT_TEMPLATE_DIR}/${templateName}`
+      `${await getTemplatesFolder(this)}/${templateName}`
     );
     if (!(await fileExists(this.app, templatePath))) {
       throw new TemplateNotFoundError("Template file not found!");
@@ -228,15 +230,14 @@ export default class NotePDF extends Plugin {
       return parentPath;
       // Using a template folder
     } else {
-      const templateFolderPath = normalizePath(this.settings.defaultPath);
-      // Check if the template folder exists
-      if (app.vault.getAbstractFileByPath(templateFolderPath)) {
-        return templateFolderPath;
+      const defaultFolderPath = normalizePath(this.settings.defaultPath); // Check if the template folder exists
+      if (app.vault.getAbstractFileByPath(defaultFolderPath)) {
+        return defaultFolderPath;
       } else {
         // Create the template folder if it doesn't exist
-        app.vault.createFolder(templateFolderPath);
+        app.vault.createFolder(defaultFolderPath);
         new Notice("Template folder not found. Creating folder.");
-        return templateFolderPath;
+        return defaultFolderPath;
       }
     }
   }

@@ -8,6 +8,7 @@ import {
   ButtonComponent,
 } from "obsidian";
 import { DEFAULT_TEMPLATE_DIR } from "./constants";
+import NotePDF from "src/main";
 
 /**
  * Loads the PDF template from the specified path.
@@ -101,9 +102,8 @@ export function appendAnnotateButton(
  * @throws Will throw an error if there's an issue in creating the folder.
  */
 export async function initTemplatesFolder(plugin: Plugin): Promise<void> {
-  const templatesFolder = normalizePath(
-    plugin.manifest.dir + DEFAULT_TEMPLATE_DIR
-  );
+  // @ts-ignore
+  const templatesFolder = await getTemplatesFolder(plugin);
 
   try {
     await plugin.app.vault.createFolder(templatesFolder);
@@ -165,4 +165,17 @@ export async function fileExists(app: App, path: string): Promise<boolean> {
     console.error("Error checking file existance");
     return false;
   }
+}
+
+/** Gets the path of the template folder based on the current settings.
+ * @param plugin The obsidian plugin instance.
+ * @return {string} The path of the template folder.
+ * @brief If the templates are stored in the custom folder, return the custom folder path. Otherwise, return the default folder path.
+ */
+
+export async function getTemplatesFolder(plugin: NotePDF): Promise<string> {
+  const settings = plugin.settings;
+  return settings.templatesAtCustom
+    ? normalizePath(settings.templatesPath)
+    : normalizePath(plugin.manifest.dir + DEFAULT_TEMPLATE_DIR);
 }

@@ -1,6 +1,7 @@
 import { App, Modal, Setting, normalizePath } from "obsidian";
 import { newNote } from "../utils/types";
 import { DEFAULT_TEMPLATE_DIR } from "src/utils/constants";
+import { getTemplatesFolder } from "src/utils/utils";
 
 export class PDFCreatorModal extends Modal {
   result: newNote = {
@@ -10,17 +11,20 @@ export class PDFCreatorModal extends Modal {
   manifest: any;
   favoriteTemplate: string;
   onSubmitCallback: (result: newNote) => void;
+  templatesFolder: string;
 
   constructor(
     app: App,
     manifest: any,
     favoriteTemplate: string,
+    templatesFolder: string,
     onSubmit: (result: newNote) => void
   ) {
     super(app);
     this.onSubmitCallback = onSubmit;
     this.manifest = manifest;
     this.favoriteTemplate = favoriteTemplate;
+    this.templatesFolder = templatesFolder;
   }
   async onOpen() {
     let { contentEl } = this;
@@ -43,12 +47,9 @@ export class PDFCreatorModal extends Modal {
     // TEMPLATE DROPDOWN
     new Setting(contentEl).setName("Template").addDropdown(async (dropDown) => {
       // read all files in the template folder
-      // add them to the dropdown menu
-      const templateFolder = normalizePath(
-        this.manifest.dir + DEFAULT_TEMPLATE_DIR
-      );
-      for (const filePath of (await this.app.vault.adapter.list(templateFolder))
-        .files) {
+      for (const filePath of (
+        await this.app.vault.adapter.list(this.templatesFolder)
+      ).files) {
         const fileName = filePath.split("/").pop();
         if (!fileName) continue; // skip if the file is null
         if (fileName.split(".")[1] !== "pdf") continue; // check if the file is a pdf

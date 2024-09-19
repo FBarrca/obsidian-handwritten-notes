@@ -13,4 +13,6 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   showWelcomeModal: true,
   collapseEmbeds: false,
   favoriteTemplate: DEFAULT_TEMPLATE,
+  templatesAtCustom: false,
+  templatesPath: DEFAULT_TEMPLATE_DIR,
 };

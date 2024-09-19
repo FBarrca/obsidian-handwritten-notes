@@ -6,6 +6,7 @@ import {
   ButtonComponent,
   Platform,
   MarkdownRenderer,
+  normalizePath,
 } from "obsidian";
 
 import {
@@ -18,6 +19,7 @@ import { PluginSettings } from "./utils/types";
 import { AppWithDesktopInternalApi } from "./utils/helpers";
 
 import NotePDF from "./main";
+import { getTemplatesFolder, initTemplatesFolder } from "./utils/utils";
 
 export class NotePDFSettingsTab extends PluginSettingTab {
   private readonly plugin: NotePDF;
@@ -44,6 +46,7 @@ export class NotePDFSettingsTab extends PluginSettingTab {
     // Settings heading
     // TEMPLATES
     this.createTemplatesSection();
+    this.createTemplateFolderPath();
     this.createSettingWithOptions();
   }
 
@@ -89,7 +92,7 @@ export class NotePDFSettingsTab extends PluginSettingTab {
       );
   }
 
-  private createTemplatesSection(): void {
+  private async createTemplatesSection(): Promise<void> {
     // add a div
     const titleEl = this.containerEl.createDiv();
     titleEl.innerText = "Templates";
@@ -99,14 +102,52 @@ export class NotePDFSettingsTab extends PluginSettingTab {
     if (Platform.isDesktop) {
       this.createFolderButton(titleEl);
     }
+    const pluginFolder = await getTemplatesFolder(this.plugin);
     MarkdownRenderer.render(
       this.app,
       `You can use **any** PDF as a template for the notes. Just add it to the templates folder and it will appear here. 
-      \`${this.plugin.manifest.dir + DEFAULT_TEMPLATE_DIR}\``,
+      \`${pluginFolder}\``,
       this.containerEl,
       "",
       this.plugin
     );
+  }
+
+  private createTemplateFolderPath(): void {
+    // Whether the templates should be stored in a custom folder
+    new Setting(this.containerEl)
+      .setName("Store templates in a custom folder")
+      .setDesc(
+        "Store the templates in a custom folder outside the plugin path. (May resolve issues with syncing)"
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.templatesAtCustom)
+          .onChange(async (value) => {
+            !value // If the value is false, set the path to the default path
+              ? (this.plugin.settings.templatesPath = DEFAULT_TEMPLATE_DIR)
+              : null;
+            this.plugin.settings.templatesAtCustom = value;
+            await this.plugin.saveSettings();
+            await initTemplatesFolder(this.plugin);
+            await this.display();
+          })
+      );
+    if (!this.plugin.settings.templatesAtCustom) return;
+    // Folder relative to the plugin
+    new Setting(this.containerEl)
+      .setName("Templates folder")
+      .setDesc("Path to the templates folder.")
+      .addText((text) =>
+        text
+          .setPlaceholder(DEFAULT_TEMPLATE_DIR)
+          .setValue(this.plugin.settings.templatesPath)
+          .onChange(async (value) => {
+            this.plugin.settings.templatesPath = value;
+            await this.plugin.saveSettings();
+          })
+      );
+    // Dividing line
   }
 
   private createFolderButton(parentEl: HTMLElement): void {
@@ -120,6 +161,7 @@ export class NotePDFSettingsTab extends PluginSettingTab {
       .setClass("setting-editor-extra-setting-button")
       .setTooltip("Reload templates");
     reloadButton.onClick(() => {
+      initTemplatesFolder(this.plugin); // Reload default template just in case
       this.display();
     });
     const folderButton = new ButtonComponent(buttonContainer)
@@ -128,21 +170,30 @@ export class NotePDFSettingsTab extends PluginSettingTab {
       // .setClass("settings-folder-button")
       .setClass("setting-editor-extra-setting-button")
       .setTooltip("Open templates folder in the explorer");
-    folderButton.onClick(() => {
+    folderButton.onClick(async () => {
       (this.app as AppWithDesktopInternalApi).showInFolder(
-        this.plugin.manifest.dir + DEFAULT_TEMPLATE_DIR + DEFAULT_TEMPLATE
+        normalizePath(
+          (await getTemplatesFolder(this.plugin)) + "/" + DEFAULT_TEMPLATE
+        )
       );
     });
   }
 
   private async createSettingWithOptions(): Promise<void> {
     const { containerEl } = this;
+    MarkdownRenderer.render(
+      this.app,
+      `### Available Templates`,
+      containerEl,
+      "",
+      this.plugin
+    );
 
     const scrollContainer = containerEl.createDiv();
     scrollContainer.addClass("settings-scroll-container");
 
     // Show also templates in the templates folder
-    const templatePath = this.plugin.manifest.dir + DEFAULT_TEMPLATE_DIR;
+    const templatePath = await getTemplatesFolder(this.plugin);
     const templates = await this.app.vault.adapter.list(templatePath);
     // iterate over the templates and show them
     for (const filePath of templates.files) {
@@ -198,6 +249,7 @@ export class NotePDFSettingsTab extends PluginSettingTab {
       );
     }
   }
+
   private isDefaultTemplate(fileName: string): boolean {
     return fileName === this.plugin.settings.favoriteTemplate;
   }

@@ -14,6 +14,8 @@ export interface PluginSettings {
   showWelcomeModal: boolean;
   collapseEmbeds: boolean;
   favoriteTemplate: string;
+  templatesAtCustom: boolean;
+  templatesPath: string;
 }
 
 export class FileExistsError extends Error {
