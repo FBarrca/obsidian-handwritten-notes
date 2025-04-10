@@ -12,3 +12,5 @@ main.js
 pnpm-lock.yaml
 npm-lock.yaml
 data.json
+.idea
+bun.lock
