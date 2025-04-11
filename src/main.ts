@@ -136,8 +136,8 @@ export default class NotePDF extends Plugin {
 		this.addCommand({
 			id: "quick-create-choose-dest-embed",
 			name: "Quick create and choose destination from modal and embed",
-			editorCallback: async () => {
-				await this.quickCreateWithDest(true);
+			editorCallback: async (editor) => {
+				await this.quickCreateWithDest(editor);
 			},
 		});
 
@@ -165,17 +165,11 @@ export default class NotePDF extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	async quickCreateWithDest(embed?: boolean) {
+	async quickCreateWithDest(editor?: Editor) {
 		new ChooseDestModals(this.app, async (result) => {
 			const dest = result.path;
 			const filePath = await this.quickCreate(dest);
-			if (embed) {
-				const editor =
-					this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
-				if (editor) {
-					editor.replaceSelection(`![[${filePath}]]`);
-				}
-			}
+			if (editor) editor.replaceSelection(`![[${filePath}]]`);
 			await openCreatedFile(this.app, filePath);
 		}).open();
 	}
@@ -194,16 +188,13 @@ export default class NotePDF extends Plugin {
 				async (result) => {
 					const destFolder = result.path ?? (await this.getDestFolder());
 					try {
-						if (destFolder) {
+						
 							const { template, name } = result;
 							const path = await this.createPDF(name, destFolder, template);
 
 							// Resolve the promise with the path when done
 							resolve(path);
-						} else {
-							// No destination folder found
-							reject(new Error("No destination folder found."));
-						}
+					
 					} catch (error) {
 						// Reject the promise if any errors occur
 						reject(error);
