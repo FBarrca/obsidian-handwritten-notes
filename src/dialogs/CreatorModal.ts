@@ -111,6 +111,7 @@ export class PDFCreatorModal extends Modal {
 				.setCta()
 				.onClick(() => {
 					this.close();
+					this.result.path = this.result.path.trim().length === 0 ? undefined : this.result.path;
 					this.onSubmitCallback(this.result);
 				}),
 		);
