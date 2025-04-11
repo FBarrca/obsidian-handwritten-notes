@@ -1,9 +1,7 @@
 // Obsidian imports
 import {
 	type App,
-	ButtonComponent,
 	MarkdownRenderer,
-	Platform,
 	PluginSettingTab,
 	Setting,
 	normalizePath,
