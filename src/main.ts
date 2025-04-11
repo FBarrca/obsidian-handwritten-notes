@@ -1,6 +1,7 @@
 // Obsidian imports
 import {
 	ButtonComponent,
+	type Editor,
 	MarkdownView,
 	Notice,
 	Platform,
@@ -56,8 +57,9 @@ export default class NotePDF extends Plugin {
 		await this.loadSettings();
 		this.addSettingTab(new NotePDFSettingsTab(this.app, this));
 
+		/** CREATE FROM MODAL */
 		this.addRibbonIcon("pencil", "Create empty handwritten note", async () => {
-			const path = await this.createPDFwithModal();
+			const path = await this.createPDFwithModal({ chooseDest: true });
 			await openCreatedFile(this.app, path);
 		});
 
@@ -65,10 +67,29 @@ export default class NotePDF extends Plugin {
 			id: "modal-create-open",
 			name: "Modal: Create and open an empty handwritten note",
 			callback: async () => {
-				const filePath = await this.createPDFwithModal();
+				const editor =
+					this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+				const filePath = await this.createPDFwithModal({
+					chooseDest: true,
+					inEditor: !!editor,
+				});
 				await openCreatedFile(this.app, filePath);
 			},
 		});
+
+		this.addCommand({
+			id: "modal-create-embed",
+			name: "Modal: Create and embed an empty handwritten note",
+			editorCallback: async (editor: Editor) => {
+				const filePath = await this.createPDFwithModal({
+					chooseDest: true,
+					inEditor: true,
+				});
+				editor.replaceSelection(`![[${filePath}]]`);
+			},
+		});
+
+		/** QUICK CREATE FROM FAVORITE **/
 
 		this.addCommand({
 			id: "create-favorite",
@@ -79,41 +100,22 @@ export default class NotePDF extends Plugin {
 		});
 
 		this.addCommand({
-			id: "modal-create-embed",
-			name: "Modal: Create and embed an empty handwritten note",
-			editorCallback: async () => {
-				const filePath = await this.createPDFwithModal();
-				const editor =
-					this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
-				if (editor) {
-					editor.replaceSelection(`![[${filePath}]]`);
-				}
-			},
-		});
-		this.addCommand({
 			id: "quick-create-embed",
 			name: "Create and embed from favorite template",
-			editorCallback: async () => {
+			editorCallback: async (editor: Editor) => {
 				const filePath = await this.quickCreate();
-				const editor =
-					this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
-				if (editor) {
-					editor.replaceSelection(`![[${filePath}]]`);
-				}
+				editor.replaceSelection(`![[${filePath}]]`);
 			},
 		});
 
 		this.addCommand({
 			id: "quick-create-embed-open",
 			name: "Create and embed and open from favorite template",
-			editorCallback: async () => {
+			editorCallback: async (editor: Editor) => {
 				const filePath = await this.quickCreate();
 				// insert the path at the cursor
-				const editor =
-					this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
-				if (editor) {
-					editor.replaceSelection(`![[${filePath}]]`);
-				}
+
+				editor.replaceSelection(`![[${filePath}]]`);
 
 				// openCreatedFile(this.app, filePath);
 				// get TFile from path
@@ -124,26 +126,10 @@ export default class NotePDF extends Plugin {
 		});
 
 		this.addCommand({
-			id: "create-choose-dest",
-			name: "Create and choose destination from modal",
-			callback: async () => {
-				await this.createChooseDest();
-			},
-		});
-
-		this.addCommand({
-			id: "create-choose-dest-embed",
-			name: "Create and choose destination from modal and embed",
-			editorCallback: async () => {
-				await this.createChooseDest({ embed: true });
-			},
-		});
-
-		this.addCommand({
 			id: "quick-create-choose-dest",
 			name: "Quick create and choose destination from modal",
 			callback: async () => {
-				await this.createChooseDest({ quick: true });
+				await this.quickCreateWithDest();
 			},
 		});
 
@@ -151,7 +137,7 @@ export default class NotePDF extends Plugin {
 			id: "quick-create-choose-dest-embed",
 			name: "Quick create and choose destination from modal and embed",
 			editorCallback: async () => {
-				await this.createChooseDest({ quick: true, embed: true });
+				await this.quickCreateWithDest(true);
 			},
 		});
 
@@ -179,13 +165,10 @@ export default class NotePDF extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	async createChooseDest(options?: { quick?: boolean; embed?: boolean }) {
-		const { quick, embed } = options || {};
+	async quickCreateWithDest(embed?: boolean) {
 		new ChooseDestModals(this.app, async (result) => {
 			const dest = result.path;
-			const filePath = quick
-				? await this.quickCreate(dest)
-				: await this.createPDFwithModal(dest);
+			const filePath = await this.quickCreate(dest);
 			if (embed) {
 				const editor =
 					this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
@@ -198,17 +181,18 @@ export default class NotePDF extends Plugin {
 	}
 
 	// PDF creation methods
-	async createPDFwithModal(dest?: string): Promise<string> {
-		const { app } = this;
-		const destFolder = dest ?? (await this.getDestFolder());
+	async createPDFwithModal(options: {
+		chooseDest?: boolean;
+		inEditor?: boolean;
+	}): Promise<string> {
+		const { chooseDest = false, inEditor = false } = options;
 		const templatesFolder = await getTemplatesFolder(this);
 		return new Promise<string>((resolve, reject) => {
 			new PDFCreatorModal(
-				app,
-				this.manifest,
-				this.settings.favoriteTemplate,
+				this,
 				templatesFolder,
 				async (result) => {
+					const destFolder = result.path ?? (await this.getDestFolder());
 					try {
 						if (destFolder) {
 							const { template, name } = result;
@@ -225,6 +209,8 @@ export default class NotePDF extends Plugin {
 						reject(error);
 					}
 				},
+				chooseDest,
+				inEditor,
 			).open();
 		});
 	}
@@ -274,9 +260,15 @@ export default class NotePDF extends Plugin {
 		if (this.settings.useRelativePaths) {
 			const parentPath = app.workspace.getActiveFile()?.parent?.path;
 			// maybe no file is open, for now just return the root
-			if (!parentPath) return app.vault.getRoot().path;
+			if (!parentPath) {
+				if (
+					this.settings.defaultPath.trim() === "" ||
+					this.settings.defaultPath.trim() === "/"
+				)
+					return app.vault.getRoot().path;
+				return this.settings.defaultPath;
+			}
 			return parentPath;
-			// Using a template folder
 		}
 		const defaultFolderPath = normalizePath(this.settings.defaultPath); // Check if the template folder exists
 		if (app.vault.getAbstractFileByPath(defaultFolderPath)) {
@@ -384,7 +376,7 @@ export default class NotePDF extends Plugin {
 			pdfNameButton.setTooltip("Open link");
 			toolbar.insertBefore(pdfNameButton.buttonEl, rightToolbar);
 			pdfNameButton.onClick(async () => {
-				openCreatedFile(this.app, pdfLink);
+				await openCreatedFile(this.app, pdfLink);
 			});
 		}
 	}
