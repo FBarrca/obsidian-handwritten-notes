@@ -93,6 +93,9 @@ export class PDFCreatorModal extends Modal {
 					cb.clearButtonEl.onclick = (_e: MouseEvent) => {
 						this.result.path = undefined;
 					};
+					cb.onChange((value) => {
+						this.result.path = value;
+					})
 				})
 				.addExtraButton((btn) =>
 					btn
@@ -111,8 +114,7 @@ export class PDFCreatorModal extends Modal {
 				.setCta()
 				.onClick(() => {
 					this.close();
-					this.result.path =
-						this.result.path && this.result.path.trim().length === 0
+					this.result.path = !this.result.path || this.result.path.trim().length === 0
 							? undefined
 							: this.result.path;
 					this.onSubmitCallback(this.result);

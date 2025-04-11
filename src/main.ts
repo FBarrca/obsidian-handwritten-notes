@@ -6,9 +6,9 @@ import {
 	Notice,
 	Platform,
 	Plugin,
-	type TFile,
+	TFile,
 	type View,
-	normalizePath,
+	normalizePath, sanitizeHTMLToDom,
 } from "obsidian";
 
 // Local imports
@@ -186,7 +186,17 @@ export default class NotePDF extends Plugin {
 				this,
 				templatesFolder,
 				async (result) => {
+					console.debug("Creating:", result);
 					const destFolder = result.path ?? (await this.getDestFolder());
+					const destTFolder = this.app.vault.getAbstractFileByPath(normalizePath(destFolder));
+					console.debug("Destination folder:", destTFolder);
+					if (!destTFolder || destTFolder instanceof TFile) {
+						if (this.settings.createFolderIfNotExists) await this.app.vault.createFolder(destFolder);
+						else {
+							new Notice(sanitizeHTMLToDom(`<span class="error">Destination "<code>${destFolder}</code>" does not exist</span>`));
+							throw new Error("Destination folder does not exist");
+						}
+					}
 					console.info("Creating PDF", result);
 					try {
 						const { template, name } = result;
@@ -196,6 +206,7 @@ export default class NotePDF extends Plugin {
 					} catch (error) {
 						// Reject the promise if any errors occur
 						reject(error);
+						console.error(error);
 					}
 				},
 				chooseDest,

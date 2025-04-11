@@ -39,12 +39,26 @@ export class NotePDFSettingsTab extends PluginSettingTab {
 		new Setting(modal).setName("Creation").setHeading();
 		this.createRelativePathToggle();
 		this.createDefaultPathTextInput();
-
+		this.createFolderIfNotExists();
 		// Settings heading
 		// TEMPLATES
 		await this.createTemplatesSection();
 		this.createTemplateFolderPath();
 		await this.createSettingWithOptions();
+	}
+	
+	private createFolderIfNotExists(): void {
+		new Setting(this.containerEl)
+			.setName("Create folder if not exists")
+			.setDesc("Create the folder if it does not exist when choosing destination outside of default path/relative path.")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.createFolderIfNotExists)
+					.onChange(async (value) => {
+						this.plugin.settings.createFolderIfNotExists = value;
+						await this.plugin.saveSettings();
+					}),
+			);
 	}
 
 	private CollapseEmbedsToggle(): void {
