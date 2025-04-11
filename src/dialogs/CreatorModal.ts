@@ -2,10 +2,13 @@ import {
 	type App,
 	Modal,
 	type PluginManifest,
+	type SearchComponent,
 	Setting,
 	normalizePath,
 } from "obsidian";
+import type NotePDF from "../main";
 import type { NewNote } from "../utils/types";
+import { ChooseDestinationSearch } from "./PathModals";
 
 export class PDFCreatorModal extends Modal {
 	result: NewNote = {
@@ -13,28 +16,32 @@ export class PDFCreatorModal extends Modal {
 		template: "blank.pdf",
 	};
 	manifest: PluginManifest;
+	plugin: NotePDF;
 	favoriteTemplate: string;
 	onSubmitCallback: (result: NewNote) => void;
 	templatesFolder: string;
+	chooseDest = false;
+	inEditor = false;
 
 	constructor(
-		app: App,
-		manifest: PluginManifest,
-		favoriteTemplate: string,
+		plugin: NotePDF,
 		templatesFolder: string,
 		onSubmit: (result: NewNote) => void,
+		chooseDest?: boolean,
+		inEditor?: boolean,
 	) {
-		super(app);
+		super(plugin.app);
 		this.onSubmitCallback = onSubmit;
-		this.manifest = manifest;
-		this.favoriteTemplate = favoriteTemplate;
+		this.manifest = plugin.manifest;
+		this.favoriteTemplate = plugin.settings.favoriteTemplate;
 		this.templatesFolder = templatesFolder;
+		this.chooseDest = chooseDest;
+		this.plugin = plugin;
+		this.inEditor = inEditor;
 	}
 	async onOpen() {
 		const { contentEl } = this;
-
-		contentEl.createEl("h1", { text: "Create new note from template" });
-		// NAME
+		this.setTitle("Create new note from template");
 		new Setting(contentEl).setName("Name").addText((text) => {
 			text.setValue(this.result.name);
 			text.onChange((value) => {
@@ -70,6 +77,33 @@ export class PDFCreatorModal extends Modal {
 				this.result.template = value;
 			});
 		});
+
+		// ONLY IF CHOOSEDEST IS TRUE
+		if (this.chooseDest) {
+			this.result.path = this.inEditor
+				? await this.plugin.getDestFolder()
+				: this.plugin.settings.defaultPath;
+			let search: SearchComponent;
+			new Setting(contentEl)
+				.setName("Destination")
+				.addSearch((cb) => {
+					cb.setPlaceholder("Choose a folder");
+					cb.setValue(this.result.path);
+					new ChooseDestinationSearch(cb.inputEl, this.app, (value) => {
+						this.result.path = value.path;
+					});
+					search = cb;
+				})
+				.addExtraButton((btn) =>
+					btn
+						.setIcon("refresh-ccw")
+						.setTooltip("Set to default")
+						.onClick(async () => {
+							this.result.path = this.plugin.settings.defaultPath;
+							search.setValue(this.result.path);
+						}),
+				);
+		}
 		// CLOSE BUTTON
 		new Setting(contentEl).addButton((btn) =>
 			btn
