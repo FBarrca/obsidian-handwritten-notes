@@ -1,10 +1,8 @@
 import {
-	type App,
 	Modal,
 	type PluginManifest,
 	type SearchComponent,
 	Setting,
-	normalizePath,
 } from "obsidian";
 import type NotePDF from "../main";
 import type { NewNote } from "../utils/types";
@@ -90,9 +88,11 @@ export class PDFCreatorModal extends Modal {
 					cb.setPlaceholder("Choose a folder");
 					cb.setValue(this.result.path);
 					new ChooseDestinationSearch(cb.inputEl, this.app, (value) => {
-						this.result.path = value.path;
+						this.result.path = value;
 					});
-					search = cb;
+					cb.clearButtonEl.onclick = (_e: MouseEvent) => {
+						this.result.path = undefined;
+					};
 				})
 				.addExtraButton((btn) =>
 					btn
@@ -111,7 +111,10 @@ export class PDFCreatorModal extends Modal {
 				.setCta()
 				.onClick(() => {
 					this.close();
-					this.result.path = this.result.path.trim().length === 0 ? undefined : this.result.path;
+					this.result.path =
+						this.result.path && this.result.path.trim().length === 0
+							? undefined
+							: this.result.path;
 					this.onSubmitCallback(this.result);
 				}),
 		);
