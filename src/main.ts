@@ -60,7 +60,7 @@ export default class NotePDF extends Plugin {
 		/** CREATE FROM MODAL */
 		this.addRibbonIcon("pencil", "Create empty handwritten note", async () => {
 			const path = await this.createPDFwithModal({ chooseDest: true });
-			await openCreatedFile(this.app, path);
+			await openCreatedFile(this.app, path, this.settings.openInNewTab);
 		});
 
 		this.addCommand({
@@ -73,7 +73,7 @@ export default class NotePDF extends Plugin {
 					chooseDest: true,
 					inEditor: !!editor,
 				});
-				await openCreatedFile(this.app, filePath);
+				await openCreatedFile(this.app, filePath, this.settings.openInNewTab);
 			},
 		});
 
@@ -170,7 +170,7 @@ export default class NotePDF extends Plugin {
 			const dest = result.path;
 			const filePath = await this.quickCreate(dest);
 			if (editor) editor.replaceSelection(`![[${filePath}]]`);
-			await openCreatedFile(this.app, filePath);
+			await openCreatedFile(this.app, filePath, this.settings.openInNewTab);
 		}).open();
 	}
 
@@ -376,7 +376,7 @@ export default class NotePDF extends Plugin {
 			pdfNameButton.setTooltip("Open link");
 			toolbar.insertBefore(pdfNameButton.buttonEl, rightToolbar);
 			pdfNameButton.onClick(async () => {
-				await openCreatedFile(this.app, pdfLink);
+				await openCreatedFile(this.app, pdfLink, this.settings.openInNewTab);
 			});
 		}
 	}

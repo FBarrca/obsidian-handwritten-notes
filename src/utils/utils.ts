@@ -54,13 +54,14 @@ export async function createBinaryFile(
  *
  * @param {App} app - The obsidian app instance.
  * @param {string} path - The path of the file to be opened.
+ * @param newTab
  */
-export async function openCreatedFile(app: App, path: string): Promise<void> {
-	const leaf = app.workspace.getLeaf(false);
+export async function openCreatedFile(app: App, path: string, newTab?: boolean): Promise<void> {
+	const leaf = app.workspace.getLeaf(newTab);
 	const file = app.vault.getAbstractFileByPath(path);
 
 	if (file instanceof TFile) {
-		await leaf.openFile(file);
+		await leaf.openFile(file, { active: newTab });
 	}
 }
 
