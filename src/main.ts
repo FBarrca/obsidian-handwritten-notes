@@ -187,14 +187,12 @@ export default class NotePDF extends Plugin {
 				templatesFolder,
 				async (result) => {
 					const destFolder = result.path ?? (await this.getDestFolder());
+					console.info("Creating PDF", result);
 					try {
-						
-							const { template, name } = result;
-							const path = await this.createPDF(name, destFolder, template);
-
-							// Resolve the promise with the path when done
-							resolve(path);
-					
+						const { template, name } = result;
+						const path = await this.createPDF(name, destFolder, template);
+						// Resolve the promise with the path when done
+						resolve(path);
 					} catch (error) {
 						// Reject the promise if any errors occur
 						reject(error);
