@@ -32,14 +32,11 @@ export class NotePDFSettingsTab extends PluginSettingTab {
 		const { containerEl: modal } = this;
 		modal.empty();
 		// GENERAL SETTINGS
-		modal.createEl("h2", {
-			text: "General Settings",
-		});
+		new Setting(modal).setName("General").setHeading();
 		this.CollapseEmbedsToggle();
+		this.openInNewTabButton();
 		// Generate new note
-		modal.createEl("h2", {
-			text: "Create new note",
-		});
+		new Setting(modal).setName("Creation").setHeading();
 		this.createRelativePathToggle();
 		this.createDefaultPathTextInput();
 
@@ -97,14 +94,10 @@ export class NotePDFSettingsTab extends PluginSettingTab {
 
 	private async createTemplatesSection(): Promise<void> {
 		// add a div
-		const titleEl = this.containerEl.createDiv();
-		titleEl.innerText = "Templates";
-		titleEl.addClass("setting-item-heading");
-		titleEl.addClass("setting-item");
-
-		if (Platform.isDesktop) {
-			this.createFolderButton(titleEl);
-		}
+		const titleEl = new Setting(this.containerEl)
+			.setName("Templates")
+			.setHeading();
+		this.createFolderButton(titleEl);
 		const pluginFolder = await getTemplatesFolder(this.plugin);
 		await MarkdownRenderer.render(
 			this.app,
@@ -154,32 +147,28 @@ export class NotePDFSettingsTab extends PluginSettingTab {
 		// Dividing line
 	}
 
-	private createFolderButton(parentEl: HTMLElement): void {
+	private createFolderButton(title: Setting): void {
 		// div for the buttons
-		const buttonContainer = parentEl.createDiv();
-		buttonContainer.addClass("setting-item-control");
-		// Reload button
-		const reloadButton = new ButtonComponent(buttonContainer)
-			.setIcon("sync")
-			.setClass("clickable-icon")
-			.setClass("setting-editor-extra-setting-button")
-			.setTooltip("Reload templates");
-		reloadButton.onClick(async () => {
-			await initTemplatesFolder(this.plugin); // Reload default template just in case
-			await this.display();
+		title.addExtraButton((button) => {
+			button
+				.setIcon("sync")
+				.setTooltip("Reload templates")
+				.onClick(async () => {
+					await initTemplatesFolder(this.plugin); // Reload default template just in case
+					await this.display();
+				});
 		});
-		const folderButton = new ButtonComponent(buttonContainer)
-			.setIcon("folder")
-			.setClass("clickable-icon")
-			// .setClass("settings-folder-button")
-			.setClass("setting-editor-extra-setting-button")
-			.setTooltip("Open templates folder in the explorer");
-		folderButton.onClick(async () => {
-			await (this.app as AppWithDesktopInternalApi).showInFolder(
-				normalizePath(
-					`${await getTemplatesFolder(this.plugin)}/${DEFAULT_TEMPLATE}`,
-				),
-			);
+		title.addExtraButton((button) => {
+			button
+				.setIcon("folder")
+				.setTooltip("Open templates folder in the explorer")
+				.onClick(async () => {
+					await (this.app as AppWithDesktopInternalApi).showInFolder(
+						normalizePath(
+							`${await getTemplatesFolder(this.plugin)}/${DEFAULT_TEMPLATE}`,
+						),
+					);
+				});
 		});
 	}
 
@@ -244,7 +233,7 @@ export class NotePDFSettingsTab extends PluginSettingTab {
 							this.plugin.settings.favoriteTemplate = DEFAULT_TEMPLATE;
 						try {
 							await this.app.vault.adapter.remove(filePath);
-							console.log(`Deleted asset: ${filePath}`);
+							//console.log(`Deleted asset: ${filePath}`);
 							await this.display();
 						} catch (err) {
 							console.error(`Error deleting asset ${filePath}:`, err);
@@ -256,6 +245,23 @@ export class NotePDFSettingsTab extends PluginSettingTab {
 
 	private isDefaultTemplate(fileName: string): boolean {
 		return fileName === this.plugin.settings.favoriteTemplate;
+	}
+
+	private openInNewTabButton() {
+		new Setting(this.containerEl)
+			.setName("Open in new tab")
+			.setDesc(
+				"Open the generated file in a new tab instead of the active tab.",
+			)
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.openInNewTab)
+					.onChange(async (value) => {
+						this.plugin.settings.openInNewTab = value;
+						await this.plugin.saveSettings();
+						await this.display();
+					}),
+			);
 	}
 
 	private favoriteButton(setting: Setting, fileName: string): void {
