@@ -1,13 +1,14 @@
 // Obsidian imports
 import {
 	ButtonComponent,
+	type Editor,
 	MarkdownView,
 	Notice,
 	Platform,
 	Plugin,
-	type TFile,
+	TFile,
 	type View,
-	normalizePath,
+	normalizePath, sanitizeHTMLToDom,
 } from "obsidian";
 
 // Local imports
@@ -56,19 +57,39 @@ export default class NotePDF extends Plugin {
 		await this.loadSettings();
 		this.addSettingTab(new NotePDFSettingsTab(this.app, this));
 
+		/** CREATE FROM MODAL */
 		this.addRibbonIcon("pencil", "Create empty handwritten note", async () => {
-			const path = await this.createPDFwithModal();
-			await openCreatedFile(this.app, path);
+			const path = await this.createPDFwithModal({ chooseDest: true });
+			await openCreatedFile(this.app, path, this.settings.openInNewTab);
 		});
 
 		this.addCommand({
 			id: "modal-create-open",
 			name: "Modal: Create and open an empty handwritten note",
 			callback: async () => {
-				const filePath = await this.createPDFwithModal();
-				await openCreatedFile(this.app, filePath);
+				const editor =
+					this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+				const filePath = await this.createPDFwithModal({
+					chooseDest: true,
+					inEditor: !!editor,
+				});
+				await openCreatedFile(this.app, filePath, this.settings.openInNewTab);
 			},
 		});
+
+		this.addCommand({
+			id: "modal-create-embed",
+			name: "Modal: Create and embed an empty handwritten note",
+			editorCallback: async (editor: Editor) => {
+				const filePath = await this.createPDFwithModal({
+					chooseDest: true,
+					inEditor: true,
+				});
+				editor.replaceSelection(`![[${filePath}]]`);
+			},
+		});
+
+		/** QUICK CREATE FROM FAVORITE **/
 
 		this.addCommand({
 			id: "create-favorite",
@@ -79,41 +100,22 @@ export default class NotePDF extends Plugin {
 		});
 
 		this.addCommand({
-			id: "modal-create-embed",
-			name: "Modal: Create and embed an empty handwritten note",
-			editorCallback: async () => {
-				const filePath = await this.createPDFwithModal();
-				const editor =
-					this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
-				if (editor) {
-					editor.replaceSelection(`![[${filePath}]]`);
-				}
-			},
-		});
-		this.addCommand({
 			id: "quick-create-embed",
 			name: "Create and embed from favorite template",
-			editorCallback: async () => {
+			editorCallback: async (editor: Editor) => {
 				const filePath = await this.quickCreate();
-				const editor =
-					this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
-				if (editor) {
-					editor.replaceSelection(`![[${filePath}]]`);
-				}
+				editor.replaceSelection(`![[${filePath}]]`);
 			},
 		});
 
 		this.addCommand({
 			id: "quick-create-embed-open",
 			name: "Create and embed and open from favorite template",
-			editorCallback: async () => {
+			editorCallback: async (editor: Editor) => {
 				const filePath = await this.quickCreate();
 				// insert the path at the cursor
-				const editor =
-					this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
-				if (editor) {
-					editor.replaceSelection(`![[${filePath}]]`);
-				}
+
+				editor.replaceSelection(`![[${filePath}]]`);
 
 				// openCreatedFile(this.app, filePath);
 				// get TFile from path
@@ -124,34 +126,18 @@ export default class NotePDF extends Plugin {
 		});
 
 		this.addCommand({
-			id: "create-choose-dest",
-			name: "Create and choose destination from modal",
-			callback: async () => {
-				await this.createChooseDest();
-			},
-		});
-
-		this.addCommand({
-			id: "create-choose-dest-embed",
-			name: "Create and choose destination from modal and embed",
-			editorCallback: async () => {
-				await this.createChooseDest({ embed: true });
-			},
-		});
-
-		this.addCommand({
 			id: "quick-create-choose-dest",
 			name: "Quick create and choose destination from modal",
 			callback: async () => {
-				await this.createChooseDest({ quick: true });
+				await this.quickCreateWithDest();
 			},
 		});
 
 		this.addCommand({
 			id: "quick-create-choose-dest-embed",
 			name: "Quick create and choose destination from modal and embed",
-			editorCallback: async () => {
-				await this.createChooseDest({ quick: true, embed: true });
+			editorCallback: async (editor) => {
+				await this.quickCreateWithDest(editor);
 			},
 		});
 
@@ -179,52 +165,52 @@ export default class NotePDF extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	async createChooseDest(options?: { quick?: boolean; embed?: boolean }) {
-		const { quick, embed } = options || {};
+	async quickCreateWithDest(editor?: Editor) {
 		new ChooseDestModals(this.app, async (result) => {
 			const dest = result.path;
-			const filePath = quick
-				? await this.quickCreate(dest)
-				: await this.createPDFwithModal(dest);
-			if (embed) {
-				const editor =
-					this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
-				if (editor) {
-					editor.replaceSelection(`![[${filePath}]]`);
-				}
-			}
-			await openCreatedFile(this.app, filePath);
+			const filePath = await this.quickCreate(dest);
+			if (editor) editor.replaceSelection(`![[${filePath}]]`);
+			await openCreatedFile(this.app, filePath, this.settings.openInNewTab);
 		}).open();
 	}
 
 	// PDF creation methods
-	async createPDFwithModal(dest?: string): Promise<string> {
-		const { app } = this;
-		const destFolder = dest ?? (await this.getDestFolder());
+	async createPDFwithModal(options: {
+		chooseDest?: boolean;
+		inEditor?: boolean;
+	}): Promise<string> {
+		const { chooseDest = false, inEditor = false } = options;
 		const templatesFolder = await getTemplatesFolder(this);
 		return new Promise<string>((resolve, reject) => {
 			new PDFCreatorModal(
-				app,
-				this.manifest,
-				this.settings.favoriteTemplate,
+				this,
 				templatesFolder,
 				async (result) => {
-					try {
-						if (destFolder) {
-							const { template, name } = result;
-							const path = await this.createPDF(name, destFolder, template);
-
-							// Resolve the promise with the path when done
-							resolve(path);
-						} else {
-							// No destination folder found
-							reject(new Error("No destination folder found."));
+					console.debug("Creating:", result);
+					const destFolder = result.path ?? (await this.getDestFolder());
+					const destTFolder = this.app.vault.getAbstractFileByPath(normalizePath(destFolder));
+					console.debug("Destination folder:", destTFolder);
+					if (!destTFolder || destTFolder instanceof TFile) {
+						if (this.settings.createFolderIfNotExists) await this.app.vault.createFolder(destFolder);
+						else {
+							new Notice(sanitizeHTMLToDom(`<span class="error">Destination "<code>${destFolder}</code>" does not exist</span>`));
+							throw new Error("Destination folder does not exist");
 						}
+					}
+					console.info("Creating PDF", result);
+					try {
+						const { template, name } = result;
+						const path = await this.createPDF(name, destFolder, template);
+						// Resolve the promise with the path when done
+						resolve(path);
 					} catch (error) {
 						// Reject the promise if any errors occur
 						reject(error);
+						console.error(error);
 					}
 				},
+				chooseDest,
+				inEditor,
 			).open();
 		});
 	}
@@ -274,9 +260,15 @@ export default class NotePDF extends Plugin {
 		if (this.settings.useRelativePaths) {
 			const parentPath = app.workspace.getActiveFile()?.parent?.path;
 			// maybe no file is open, for now just return the root
-			if (!parentPath) return app.vault.getRoot().path;
+			if (!parentPath) {
+				if (
+					this.settings.defaultPath.trim() === "" ||
+					this.settings.defaultPath.trim() === "/"
+				)
+					return app.vault.getRoot().path;
+				return this.settings.defaultPath;
+			}
 			return parentPath;
-			// Using a template folder
 		}
 		const defaultFolderPath = normalizePath(this.settings.defaultPath); // Check if the template folder exists
 		if (app.vault.getAbstractFileByPath(defaultFolderPath)) {
@@ -384,7 +376,7 @@ export default class NotePDF extends Plugin {
 			pdfNameButton.setTooltip("Open link");
 			toolbar.insertBefore(pdfNameButton.buttonEl, rightToolbar);
 			pdfNameButton.onClick(async () => {
-				openCreatedFile(this.app, pdfLink);
+				await openCreatedFile(this.app, pdfLink, this.settings.openInNewTab);
 			});
 		}
 	}

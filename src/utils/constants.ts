@@ -15,4 +15,6 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	favoriteTemplate: DEFAULT_TEMPLATE,
 	templatesAtCustom: false,
 	templatesPath: DEFAULT_TEMPLATE_DIR,
+	openInNewTab: false,
+	createFolderIfNotExists: true,
 };

@@ -16,6 +16,8 @@ export interface PluginSettings {
 	favoriteTemplate: string;
 	templatesAtCustom: boolean;
 	templatesPath: string;
+	openInNewTab: boolean;
+	createFolderIfNotExists: boolean;
 }
 
 export class FileExistsError extends Error {

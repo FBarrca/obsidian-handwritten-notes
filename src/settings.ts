@@ -1,9 +1,7 @@
 // Obsidian imports
 import {
 	type App,
-	ButtonComponent,
 	MarkdownRenderer,
-	Platform,
 	PluginSettingTab,
 	Setting,
 	normalizePath,
@@ -28,27 +26,37 @@ export class NotePDFSettingsTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	display(): void {
+	async display(): Promise<void> {
 		const { containerEl: modal } = this;
 		modal.empty();
 		// GENERAL SETTINGS
-		modal.createEl("h2", {
-			text: "General Settings",
-		});
+		new Setting(modal).setName("General").setHeading();
 		this.CollapseEmbedsToggle();
+		this.openInNewTabButton();
 		// Generate new note
-		modal.createEl("h2", {
-			text: "Create new note",
-		});
+		new Setting(modal).setName("Creation").setHeading();
 		this.createRelativePathToggle();
-		if (!this.plugin.settings.useRelativePaths) {
-			this.createDefaultPathTextInput();
-		}
+		this.createDefaultPathTextInput();
+		this.createFolderIfNotExists();
 		// Settings heading
 		// TEMPLATES
-		this.createTemplatesSection();
+		await this.createTemplatesSection();
 		this.createTemplateFolderPath();
-		this.createSettingWithOptions();
+		await this.createSettingWithOptions();
+	}
+	
+	private createFolderIfNotExists(): void {
+		new Setting(this.containerEl)
+			.setName("Create folder if not exists")
+			.setDesc("Create the folder if it does not exist when choosing destination outside of default path/relative path.")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.createFolderIfNotExists)
+					.onChange(async (value) => {
+						this.plugin.settings.createFolderIfNotExists = value;
+						await this.plugin.saveSettings();
+					}),
+			);
 	}
 
 	private CollapseEmbedsToggle(): void {
@@ -74,7 +82,7 @@ export class NotePDFSettingsTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.useRelativePaths = value;
 						await this.plugin.saveSettings();
-						this.display();
+						await this.display();
 					}),
 			);
 	}
@@ -82,7 +90,9 @@ export class NotePDFSettingsTab extends PluginSettingTab {
 	private createDefaultPathTextInput(): void {
 		new Setting(this.containerEl)
 			.setName("Default Path for new notes")
-			.setDesc("Path to be used if relative path is disabled.")
+			.setDesc(
+				"Path to be used if relative path is disabled or can't be used (no active file while creating).",
+			)
 			.addText((text) =>
 				text
 					.setPlaceholder(DEFAULT_ASSET_PATH)
@@ -96,16 +106,12 @@ export class NotePDFSettingsTab extends PluginSettingTab {
 
 	private async createTemplatesSection(): Promise<void> {
 		// add a div
-		const titleEl = this.containerEl.createDiv();
-		titleEl.innerText = "Templates";
-		titleEl.addClass("setting-item-heading");
-		titleEl.addClass("setting-item");
-
-		if (Platform.isDesktop) {
-			this.createFolderButton(titleEl);
-		}
+		const titleEl = new Setting(this.containerEl)
+			.setName("Templates")
+			.setHeading();
+		this.createFolderButton(titleEl);
 		const pluginFolder = await getTemplatesFolder(this.plugin);
-		MarkdownRenderer.render(
+		await MarkdownRenderer.render(
 			this.app,
 			`You can use **any** PDF as a template for the notes. Just add it to the templates folder and it will appear here. 
       \`${pluginFolder}\``,
@@ -133,7 +139,7 @@ export class NotePDFSettingsTab extends PluginSettingTab {
 						this.plugin.settings.templatesAtCustom = value;
 						await this.plugin.saveSettings();
 						await initTemplatesFolder(this.plugin);
-						this.display();
+						await this.display();
 					}),
 			);
 		if (!this.plugin.settings.templatesAtCustom) return;
@@ -153,38 +159,34 @@ export class NotePDFSettingsTab extends PluginSettingTab {
 		// Dividing line
 	}
 
-	private createFolderButton(parentEl: HTMLElement): void {
+	private createFolderButton(title: Setting): void {
 		// div for the buttons
-		const buttonContainer = parentEl.createDiv();
-		buttonContainer.addClass("setting-item-control");
-		// Reload button
-		const reloadButton = new ButtonComponent(buttonContainer)
-			.setIcon("sync")
-			.setClass("clickable-icon")
-			.setClass("setting-editor-extra-setting-button")
-			.setTooltip("Reload templates");
-		reloadButton.onClick(() => {
-			initTemplatesFolder(this.plugin); // Reload default template just in case
-			this.display();
+		title.addExtraButton((button) => {
+			button
+				.setIcon("sync")
+				.setTooltip("Reload templates")
+				.onClick(async () => {
+					await initTemplatesFolder(this.plugin); // Reload default template just in case
+					await this.display();
+				});
 		});
-		const folderButton = new ButtonComponent(buttonContainer)
-			.setIcon("folder")
-			.setClass("clickable-icon")
-			// .setClass("settings-folder-button")
-			.setClass("setting-editor-extra-setting-button")
-			.setTooltip("Open templates folder in the explorer");
-		folderButton.onClick(async () => {
-			await (this.app as AppWithDesktopInternalApi).showInFolder(
-				normalizePath(
-					`${await getTemplatesFolder(this.plugin)}/${DEFAULT_TEMPLATE}`,
-				),
-			);
+		title.addExtraButton((button) => {
+			button
+				.setIcon("folder")
+				.setTooltip("Open templates folder in the explorer")
+				.onClick(async () => {
+					await (this.app as AppWithDesktopInternalApi).showInFolder(
+						normalizePath(
+							`${await getTemplatesFolder(this.plugin)}/${DEFAULT_TEMPLATE}`,
+						),
+					);
+				});
 		});
 	}
 
 	private async createSettingWithOptions(): Promise<void> {
 		const { containerEl } = this;
-		MarkdownRenderer.render(
+		await MarkdownRenderer.render(
 			this.app,
 			"### Available Templates",
 			containerEl,
@@ -243,8 +245,8 @@ export class NotePDFSettingsTab extends PluginSettingTab {
 							this.plugin.settings.favoriteTemplate = DEFAULT_TEMPLATE;
 						try {
 							await this.app.vault.adapter.remove(filePath);
-							console.log(`Deleted asset: ${filePath}`);
-							this.display();
+							//console.log(`Deleted asset: ${filePath}`);
+							await this.display();
 						} catch (err) {
 							console.error(`Error deleting asset ${filePath}:`, err);
 						}
@@ -257,6 +259,23 @@ export class NotePDFSettingsTab extends PluginSettingTab {
 		return fileName === this.plugin.settings.favoriteTemplate;
 	}
 
+	private openInNewTabButton() {
+		new Setting(this.containerEl)
+			.setName("Open in new tab")
+			.setDesc(
+				"Open the generated file in a new tab instead of the active tab.",
+			)
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.openInNewTab)
+					.onChange(async (value) => {
+						this.plugin.settings.openInNewTab = value;
+						await this.plugin.saveSettings();
+						await this.display();
+					}),
+			);
+	}
+
 	private favoriteButton(setting: Setting, fileName: string): void {
 		setting.addButton((button) =>
 			button
@@ -267,13 +286,13 @@ export class NotePDFSettingsTab extends PluginSettingTab {
 				)
 				.setTooltip("Favorite template")
 				.setClass("settings-button")
-				.onClick(() => {
+				.onClick(async () => {
 					// if the template is not favorite, make it favorite else do nothing
 					if (this.isDefaultTemplate(fileName)) return;
 					this.plugin.settings.favoriteTemplate = fileName;
-					this.plugin.saveSettings();
+					await this.plugin.saveSettings();
 					// refresh the settings tab
-					this.display();
+					await this.display();
 				}),
 		);
 	}
