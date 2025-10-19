@@ -60,12 +60,7 @@ To work with handwritten notes, a compatible external PDF editor is **mandatory*
 
 ### **Linux (Community Curated)**
 
-|App Name|Description|
-|---|---|
-|**Xournal++**|Fast and responsive, though struggles with large files containing images.|
-|**Saber**|Promising UI with cloud storage; limited file import support.|
-|**Scrivano**|Excellent potential but lacks a file tree view and session memory.|
-
+Please PR with your recommended editors!
 ---
 
 ## ⚠️ Known Issues
