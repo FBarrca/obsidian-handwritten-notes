@@ -49,6 +49,7 @@ To work with handwritten notes, a compatible external PDF editor is **mandatory*
 |Samsung's Write on PDF|Built-in PDF editor for Samsung devices|
 |Microsoft's PDF Editor|PDF editor by Microsoft|
 |PenandPdf|Open-source, though abandoned|
+|[PDFgear](https://www.pdfgear.com/)|Free, actively maintained|
 
 ### **iOS (Community Curated)**
 
