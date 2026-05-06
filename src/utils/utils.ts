@@ -7,6 +7,7 @@ import {
 	requestUrl,
 	TFile,
 } from "obsidian";
+import { PDFDocument } from "pdf-lib";
 import type NotePDF from "src/main";
 import { DEFAULT_TEMPLATE_DIR } from "./constants";
 
@@ -99,6 +100,33 @@ export function appendAnnotateButton(
 }
 
 /**
+ * Appends an 'Add page' button to the specified toolbar.
+ *
+ * @param {HTMLElement} toolbar - The toolbar where the button will be appended.
+ * @param {() => Promise<void>} onClick - The async function to be executed when the button is clicked.
+ */
+export function appendAddPageButton(
+	toolbar: HTMLElement,
+	onClick: () => Promise<void>,
+): void {
+	const matchingChild = toolbar.querySelector(".pdf-add-page-button");
+	if (matchingChild) return;
+
+	const button = new ButtonComponent(toolbar).setIcon("plus");
+	button.setTooltip("Add page");
+	button.setClass("pdf-add-page-button");
+	button.setClass("clickable-icon");
+
+	button.onClick(async () => {
+		try {
+			await onClick();
+		} catch (error) {
+			console.error("Error handling async add page:", error);
+		}
+	});
+}
+
+/**
  * Initializes the templates folder if it doesn't exist.
  *
  * @param {Plugin} plugin - The obsidian plugin instance.
@@ -178,4 +206,56 @@ export async function getTemplatesFolder(plugin: NotePDF): Promise<string> {
 	return settings.templatesAtCustom
 		? normalizePath(settings.templatesPath)
 		: normalizePath(plugin.manifest.dir + DEFAULT_TEMPLATE_DIR);
+}
+
+/**
+ * Appends the first page of a template PDF to an existing PDF.
+ *
+ * @param {App} app - The obsidian app instance.
+ * @param {string} existingPdfPath - Path to the existing PDF file.
+ * @param {string} templatePath - Path to the template PDF whose first page will be appended.
+ */
+export async function appendPageToPdf(
+	app: App,
+	existingPdfPath: string,
+	templatePath: string,
+): Promise<void> {
+	try {
+		const existingPdfBuffer = await app.vault.adapter.readBinary(
+			normalizePath(existingPdfPath),
+		);
+		
+		const templateBuffer = await app.vault.adapter.readBinary(
+			normalizePath(templatePath),
+		);
+
+		const existingPdf = await PDFDocument.load(existingPdfBuffer);
+		const templatePdf = await PDFDocument.load(templateBuffer);
+
+		if (templatePdf.getPageCount() === 0) {
+			new Notice("Template has no pages!");
+			return;
+		}
+
+		const [copiedPage] = await existingPdf.copyPages(templatePdf, [0]);
+		existingPdf.addPage(copiedPage);
+
+		const modifiedPdfBytes = await existingPdf.save();
+		const arrayBuffer = modifiedPdfBytes.buffer.slice(
+			modifiedPdfBytes.byteOffset,
+			modifiedPdfBytes.byteOffset + modifiedPdfBytes.byteLength,
+		);
+
+		const existingFile = app.vault.getAbstractFileByPath(
+			normalizePath(existingPdfPath),
+		);
+		if (existingFile instanceof TFile) {
+			await app.vault.modifyBinary(existingFile, arrayBuffer as ArrayBuffer);
+			new Notice("Page added successfully!");
+		} else {
+			throw new Error("Could not find the existing PDF file");
+		}
+	} catch (error) {
+		throw error;
+	}
 }

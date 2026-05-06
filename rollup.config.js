@@ -2,6 +2,7 @@ import typescript from "@rollup/plugin-typescript";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import image from "@rollup/plugin-image";
+import json from "@rollup/plugin-json";
 
 const isProd = process.env.BUILD === "production";
 
@@ -22,5 +23,5 @@ export default {
     banner,
   },
   external: ["obsidian"],
-  plugins: [typescript(), nodeResolve({ browser: true }), commonjs(),image()],
+  plugins: [typescript(), nodeResolve({ browser: true }), commonjs(), json(), image()],
 };
