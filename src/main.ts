@@ -12,8 +12,10 @@ import {
 } from "obsidian";
 
 // Local imports
+import { AppendPageModal } from "./dialogs/AppendPageModal";
 import { PDFCreatorModal } from "./dialogs/CreatorModal";
 import { ChooseDestModals } from "./dialogs/PathModals";
+import { TemplateSelectModal } from "./dialogs/TemplateSelectModal";
 import WelcomeModal from "./dialogs/WelcomeModal";
 import { NotePDFSettingsTab } from "./settings";
 import { DEFAULT_SETTINGS } from "./utils/constants";
@@ -27,7 +29,9 @@ import {
 	TemplateNotFoundError,
 } from "./utils/types";
 import {
+	appendAddPageButton,
 	appendAnnotateButton,
+	appendPageToPdf,
 	createBinaryFile,
 	fileExists,
 	getTemplatesFolder,
@@ -138,6 +142,33 @@ export default class NotePDF extends Plugin {
 			name: "Quick create and choose destination from modal and embed",
 			editorCallback: async (editor) => {
 				await this.quickCreateWithDest(editor);
+			},
+		});
+
+		/** ADD PAGE TO EXISTING PDF **/
+
+		this.addCommand({
+			id: "append-page-to-pdf",
+			name: "Add page to existing PDF",
+			callback: async () => {
+				const templatesFolder = await getTemplatesFolder(this);
+				new AppendPageModal(this, templatesFolder, async (result) => {
+					const templatePath = normalizePath(
+						`${templatesFolder}/${result.template}`,
+					);
+					try {
+						await appendPageToPdf(
+							this.app,
+							result.pdfPath,
+							templatePath,
+						);
+					} catch (error) {
+						console.error(error);
+						new Notice(
+							`Error adding page: ${error.message}`,
+						);
+					}
+				}).open();
 			},
 		});
 
@@ -297,11 +328,46 @@ export default class NotePDF extends Plugin {
 	async addAnnotateButtonPDF(view: View) {
 		// get the
 		const toolbars = view.containerEl.getElementsByClassName("pdf-toolbar");
+		const pdfFile = (view as any).file as TFile | undefined;
 		for (let i = 0; i < toolbars.length; i++) {
 			appendAnnotateButton(toolbars[i] as HTMLElement, () =>
 				//@ts-ignore
 				this.app.commands.executeCommandById("open-with-default-app:open"),
 			);
+			if (pdfFile && pdfFile.extension === "pdf") {
+				appendAddPageButton(toolbars[i] as HTMLElement, async () => {
+					new TemplateSelectModal(this, async (templateName) => {
+						try {
+							const templatesFolder = await getTemplatesFolder(this);
+							const templatePath = normalizePath(
+								`${templatesFolder}/${templateName}`,
+							);
+							
+							// Check if template exists
+							const templateExists = await fileExists(this.app, templatePath);
+							if (!templateExists) {
+								new Notice(`Template file not found: ${templateName}`);
+								return;
+							}
+							
+							// Check if PDF file exists
+							const pdfExists = await fileExists(this.app, pdfFile.path);
+							if (!pdfExists) {
+								new Notice(`PDF file not found: ${pdfFile.path}`);
+								return;
+							}
+							
+							await appendPageToPdf(
+								this.app,
+								pdfFile.path,
+								templatePath,
+							);
+						} catch (error) {
+							new Notice(`Error adding page: ${error.message}`);
+						}
+					}).open();
+				});
+			}
 		}
 	}
 
@@ -324,6 +390,41 @@ export default class NotePDF extends Plugin {
 			appendAnnotateButton(rightToolbar as HTMLElement, async () => {
 				await this.openEmbeddedExternal(pdfFile);
 			});
+
+			if (pdfFile && pdfFile.extension === "pdf") {
+				appendAddPageButton(rightToolbar as HTMLElement, async () => {
+					new TemplateSelectModal(this, async (templateName) => {
+						try {
+							const templatesFolder = await getTemplatesFolder(this);
+							const templatePath = normalizePath(
+								`${templatesFolder}/${templateName}`,
+							);
+							
+							// Check if template exists
+							const templateExists = await fileExists(this.app, templatePath);
+							if (!templateExists) {
+								new Notice(`Template file not found: ${templateName}`);
+								return;
+							}
+							
+							// Check if PDF file exists
+							const pdfExists = await fileExists(this.app, pdfFile.path);
+							if (!pdfExists) {
+								new Notice(`PDF file not found: ${pdfFile.path}`);
+								return;
+							}
+							
+							await appendPageToPdf(
+								this.app,
+								pdfFile.path,
+								templatePath,
+							);
+						} catch (error) {
+							new Notice(`Error adding page: ${error.message}`);
+						}
+					}).open();
+				});
+			}
 
 			// COLLAPSE BUTTON
 			const leftToolbar = embed.querySelector(".pdf-toolbar-left");
